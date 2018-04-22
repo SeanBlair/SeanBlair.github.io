@@ -1,0 +1,21 @@
+html {
+  font-size: 10px;
+}
+
+body {
+  font-size: 1.6rem;
+  margin: 5%;
+}
+
+h1 {
+  text-align: center;
+}
+
+footer {
+  clear: both;
+}
+
+header, footer {
+  height: 10%;
+  background-color: aliceblue;
+}
