@@ -1,30 +1,73 @@
-// const canvas = document.querySelector('.canvas');
 const canvas = document.querySelector('.canvas');
 canvas.width = 400;
 canvas.height = 400;
 const ctx = canvas.getContext('2d');
-const left = 20;
+const LEFT = 20;
 const TOP = 20;
 const squareSize = 10;
-const height = squareSize * 20;
-const width = squareSize * 10;
+const rowLength = 10;
+const columnLength = 20;
+const width = squareSize * rowLength;
+const height = squareSize * columnLength;
+const keyLeft = 37;
+const keyDowsn = 40;
+const keyRight = 39;
+window.addEventListener('keydown', handleKeyDown);
 
-// game area
-ctx.strokeStyle = 'rgb(0, 0, 0)';
-ctx.strokeRect(left, TOP, width, height);
+// a movable square
+var theSquare = new Square(0, 0, 'blue');
 
-ctx.strokeStyle = 'rgb(100, 100, 100)';
-for (let i = 0; i < 10; i++) {
-  ctx.strokeRect(left + squareSize * i, TOP + height - squareSize, squareSize, squareSize);
+// show initial game
+render();
+
+function render() {
+  // game area
+  ctx.strokeStyle = 'rgb(0, 0, 0)';
+  ctx.strokeRect(LEFT, TOP, width, height);
+  ctx.fillStyle = 'white';
+  ctx.fillRect(LEFT, TOP, width, height);
+  
+  theSquare.draw();
 }
 
-ctx.strokeRect(left + squareSize * 5, 
-              TOP + squareSize * 5, squareSize, squareSize);
-ctx.strokeRect(left + squareSize * 5, 
-              TOP + squareSize * 6, squareSize, squareSize);
+// a square
+function Square(x, y, color) {
+  this.x = x;
+  this.y = y;
+  this.color = color;
+  this.draw = function() {
+    ctx.strokeStyle = color;
+    ctx.strokeRect(LEFT + this.x * squareSize, TOP + this.y * squareSize, squareSize, squareSize);
+  }
+  this.moveLeft = function() {
+    if (this.x > 0) {
+      this.x--;
+    }
+  }
+  this.moveRight = function() {
+    if (this.x < rowLength - 1) {
+      this.x++;
+    }
+  }
+  this.moveDown = function() {
+    if (this.y < columnLength - 1) {
+      this.y++;
+    }
+  }
+}
 
-ctx.strokeRect(left + squareSize * 4, 
-              TOP + squareSize * 6, squareSize, squareSize);
-
-ctx.strokeRect(left + squareSize * 6, 
-              TOP + squareSize * 6, squareSize, squareSize);
+function handleKeyDown(e) {
+  switch (e.keyCode) {
+    case keyLeft:
+      theSquare.moveLeft();
+      render();
+      break;
+    case keyDowsn:
+      theSquare.moveDown();
+      render();
+      break;
+    case keyRight:
+      theSquare.moveRight();
+      render();
+  } 
+}
