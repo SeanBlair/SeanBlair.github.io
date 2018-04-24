@@ -43,23 +43,60 @@ function beginGame() {
 }
 
 // Lowers the square one squareSize if possible
-// othersise creates new square to lower.
+// otherwise creates new square to lower.
 // renders the game.
 function updateGame() {
-  // if (game.theSquare.y < columnLength - 1) {
   if (isSpaceBelow(game.theSquare)) {
     game.theSquare.moveDown();
   } else {
     game.landedSquares.push(game.theSquare);
+    removeFullRows();
     game.theSquare = new Square(5, 0, 'blue');
   }
   render();
 }
 
+// Removes any full rows and then drops any square above.
+function removeFullRows() {
+  for (let i = columnLength - 1; i >= 0; i--) {
+    let squareCountInRow = getSquareCountInRow(i);
+    if (squareCountInRow === rowLength) {
+      removeSquaresInRow(i);
+      dropSquaresAbove(i);
+      removeFullRows();
+      break;
+    }
+  }
+}
+
+// returns the number of squares at row with y == index
+function getSquareCountInRow(index) {
+  let count = game.landedSquares.reduce(
+    (num, sq) => sq.y === index ? num + 1 : num, 0
+  );
+  return count;
+}
+
+// replaces game.landedSquares with an array of squares
+// that do not have y == index;
+function removeSquaresInRow(index) {
+  let newLandedArray = [];
+  game.landedSquares.forEach(
+    s => {if(s.y !== index) newLandedArray.push(s)}
+  );
+  game.landedSquares = newLandedArray;
+}
+
+// Adds one to the y value of all squares with y < index
+function dropSquaresAbove(index) {
+ game.landedSquares.forEach(s => { if (s.y < index) s.y++});
+}
+
 // returns true if there is a space below the square.
 function isSpaceBelow(square) {
-  let isHittingLanded = 
-  game.landedSquares.some(s => s.y === square.y + 1 && s.x === square.x);
+  let isHittingLanded = game.landedSquares.some(
+    s => s.y === square.y + 1 && s.x === square.x
+  );
   let isHittingBottom = square.y === columnLength - 1;
   return !isHittingLanded && !isHittingBottom;
 }
@@ -123,17 +160,35 @@ function Square(x, y, color) {
 function handleKeyDown(e) {
   switch (e.keyCode) {
     case keyLeft:
+    if (!isSquareOnLeft()) {
       game.theSquare.moveLeft();
       render();
-      break;
+    }
+    break;
     case keyDowsn:
-      if (isSpaceBelow(game.theSquare)) {
-        game.theSquare.moveDown();
-        render();
-      }
-      break;
+    if (isSpaceBelow(game.theSquare)) {
+      game.theSquare.moveDown();
+      render();
+    }
+    break;
     case keyRight:
+    if (!isSquareOnRight()) {
       game.theSquare.moveRight();
       render();
+    }
   } 
+}
+
+// return true if there is a landed square on the right of theSquare
+function isSquareOnRight() {
+  return game.landedSquares.some(
+    s => s.y === game.theSquare.y && s.x === game.theSquare.x + 1
+  );
+}
+
+// return true if there is a landed square on the left of theSquare
+function isSquareOnLeft() {
+  return game.landedSquares.some(
+    s => s.y === game.theSquare.y && s.x === game.theSquare.x - 1
+  );
 }
