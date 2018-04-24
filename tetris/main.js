@@ -24,7 +24,7 @@ const keyLeft = 37;
 const keyDowsn = 40;
 const keyRight = 39;
 // Initial update interval in milliseconds
-let updateInterval = 1000;
+let updateInterval = 500;
 // add listener for user keyboard input
 window.addEventListener('keydown', handleKeyDown);
 
@@ -33,7 +33,8 @@ beginGame();
 
 // The game object
 let game = {
-  theSquare: new Square(5, 0, 'blue'),
+  theShape: new OShape(),
+  // theSquare: new Square(5, 0, 'blue'),
   landedSquares: []
 }
 
@@ -42,16 +43,17 @@ function beginGame() {
   setInterval(updateGame, updateInterval);
 }
 
-// Lowers the square one squareSize if possible
-// otherwise creates new square to lower.
-// renders the game.
+// Lowers the shape one squareSize if possible
+// otherwise creates new shape to lower.
+// renders the new game state.
 function updateGame() {
-  if (isSpaceBelow(game.theSquare)) {
-    game.theSquare.moveDown();
+  if (game.theShape.isSpaceBelow()) {
+    game.theShape.moveDown();
   } else {
-    game.landedSquares.push(game.theSquare);
+    // Appends the landed shape's squares to the landedSquares array
+    Array.prototype.push.apply(game.landedSquares, game.theShape.squares);
     removeFullRows();
-    game.theSquare = new Square(5, 0, 'blue');
+    game.theShape = new OShape();
   }
   render();
 }
@@ -62,7 +64,9 @@ function removeFullRows() {
     let squareCountInRow = getSquareCountInRow(i);
     if (squareCountInRow === rowLength) {
       removeSquaresInRow(i);
-      dropSquaresAbove(i);
+      // Drops squares above this row
+      game.landedSquares.forEach(s => { if (s.y < i) s.y++});
+      // Recursive call, ends when no full rows exist.
       removeFullRows();
       break;
     }
@@ -87,20 +91,6 @@ function removeSquaresInRow(index) {
   game.landedSquares = newLandedArray;
 }
 
-// Adds one to the y value of all squares with y < index
-function dropSquaresAbove(index) {
- game.landedSquares.forEach(s => { if (s.y < index) s.y++});
-}
-
-// returns true if there is a space below the square.
-function isSpaceBelow(square) {
-  let isHittingLanded = game.landedSquares.some(
-    s => s.y === square.y + 1 && s.x === square.x
-  );
-  let isHittingBottom = square.y === columnLength - 1;
-  return !isHittingLanded && !isHittingBottom;
-}
-
 // Refreshes the game image by overwritting previous image
 // and drawing new game.
 function render() {
@@ -111,14 +101,9 @@ function render() {
   // background
   ctx.fillStyle = 'white';
   ctx.fillRect(LEFT, TOP, width, height);
-  // The next square.
-  game.theSquare.draw();
-  // the landed squres
-  drawLandedSquares();
-}
-
-// draws all landed squares
-function drawLandedSquares() {
+  // The next shape.
+  game.theShape.draw();
+  // the landed squares
   game.landedSquares.forEach(s => s.draw());
 }
 
@@ -140,55 +125,88 @@ function Square(x, y, color) {
     );
   }
   this.moveLeft = function() {
-    if (this.x > 0) {
-      this.x--;
-    }
+    this.x--;
   }
   this.moveRight = function() {
-    if (this.x < rowLength - 1) {
-      this.x++;
-    }
+    this.x++;
   }
   this.moveDown = function() {
-    if (this.y < columnLength - 1) {
-      this.y++;
-    }
+    this.y++;
   }
+  this.canMoveLeft = function() {
+    let isSquareOnLeft = game.landedSquares.some(
+      s => s.y === this.y && s.x === this.x - 1
+    );
+    let isAtLeftBorder = this.x === 0;
+    return !isSquareOnLeft && !isAtLeftBorder;
+  }
+  this.canMoveRight = function() {
+    let isSquareOnRight = game.landedSquares.some(
+      s => s.y === this.y && s.x === this.x + 1
+    );
+    let isAtRightBorder = this.x === rowLength - 1;
+    return !isSquareOnRight && !isAtRightBorder;
+  }
+  this.canMoveDown = function() {
+    let isSquareBellow = game.landedSquares.some(
+      s => s.x === this.x && s.y === this.y + 1
+    );
+    let isAtBottom = this.y === columnLength - 1;
+    return !isSquareBellow && !isAtBottom;
+  }
+}
+// Todo refactor to extract all this to a generic Shape object.
+// only the rotate functions and the actual setting of original
+// tetrominos's is needed for a unique one.
+function OShape() {
+  this.squares = [
+    new Square(4, 0, 'blue'),
+    new Square(5, 0, 'blue'),
+    new Square(4, 1, 'blue'),
+    new Square(5, 1, 'blue')
+  ];
+  this.draw = function() {
+    this.squares.forEach(s => s.draw());
+  };
+  this.moveLeft = function() {
+    this.squares.forEach(s => s.moveLeft());
+  };
+  this.moveRight = function() {
+    this.squares.forEach(s => s.moveRight());
+  };
+  this.moveDown = function() {
+    this.squares.forEach(s => s.moveDown());
+  };
+  this.isSpaceOnLeft = function() {
+    return this.squares.every(s => s.canMoveLeft());
+  };
+  this.isSpaceOnRight = function() {
+    return this.squares.every(s => s.canMoveRight());
+  };
+  this.isSpaceBelow = function() {
+    return this.squares.every(s => s.canMoveDown());
+  };
 }
 
 // User input handler
 function handleKeyDown(e) {
   switch (e.keyCode) {
     case keyLeft:
-    if (!isSquareOnLeft()) {
-      game.theSquare.moveLeft();
+    if (game.theShape.isSpaceOnLeft()) {
+      game.theShape.moveLeft();
       render();
     }
     break;
     case keyDowsn:
-    if (isSpaceBelow(game.theSquare)) {
-      game.theSquare.moveDown();
+    if (game.theShape.isSpaceBelow()) {
+      game.theShape.moveDown();
       render();
     }
     break;
     case keyRight:
-    if (!isSquareOnRight()) {
-      game.theSquare.moveRight();
+    if (game.theShape.isSpaceOnRight()) {
+      game.theShape.moveRight();
       render();
     }
   } 
-}
-
-// return true if there is a landed square on the right of theSquare
-function isSquareOnRight() {
-  return game.landedSquares.some(
-    s => s.y === game.theSquare.y && s.x === game.theSquare.x + 1
-  );
-}
-
-// return true if there is a landed square on the left of theSquare
-function isSquareOnLeft() {
-  return game.landedSquares.some(
-    s => s.y === game.theSquare.y && s.x === game.theSquare.x - 1
-  );
 }
