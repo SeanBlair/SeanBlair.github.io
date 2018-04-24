@@ -28,9 +28,12 @@ let updateInterval = 1000;
 // add listener for user keyboard input
 window.addEventListener('keydown', handleKeyDown);
 
-// a movable square 
-var theSquare = new Square(5, 0, 'blue');
 beginGame();
+
+let game = {
+  theSquare: new Square(5, 0, 'blue'),
+  landedSquares: []
+}
 
 // Periodically calls updatedGame() after updateInterval milliseconds. 
 function beginGame() {
@@ -41,10 +44,11 @@ function beginGame() {
 // othersise creates new square to lower.
 // renders the game.
 function updateGame() {
-  if (theSquare.y < columnLength - 1) {
-    theSquare.moveDown();
+  if (game.theSquare.y < columnLength - 1) {
+    game.theSquare.moveDown();
   } else {
-    theSquare = new Square(5, 0, 'blue');
+    game.landedSquares.push(game.theSquare);
+    game.theSquare = new Square(5, 0, 'blue');
   }
   render();
 }
@@ -60,7 +64,12 @@ function render() {
   ctx.fillStyle = 'white';
   ctx.fillRect(LEFT, TOP, width, height);
   // The next square.
-  theSquare.draw();
+  game.theSquare.draw();
+  drawLandedSquares();
+}
+
+function drawLandedSquares() {
+  game.landedSquares.forEach(s => s.draw());
 }
 
 // a square
@@ -96,15 +105,15 @@ function Square(x, y, color) {
 function handleKeyDown(e) {
   switch (e.keyCode) {
     case keyLeft:
-      theSquare.moveLeft();
+      game.theSquare.moveLeft();
       render();
       break;
     case keyDowsn:
-      theSquare.moveDown();
+      game.theSquare.moveDown();
       render();
       break;
     case keyRight:
-      theSquare.moveRight();
+      game.theSquare.moveRight();
       render();
   } 
 }
