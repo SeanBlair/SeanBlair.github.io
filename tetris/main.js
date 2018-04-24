@@ -28,8 +28,10 @@ let updateInterval = 1000;
 // add listener for user keyboard input
 window.addEventListener('keydown', handleKeyDown);
 
+// Entry point
 beginGame();
 
+// The game object
 let game = {
   theSquare: new Square(5, 0, 'blue'),
   landedSquares: []
@@ -44,7 +46,8 @@ function beginGame() {
 // othersise creates new square to lower.
 // renders the game.
 function updateGame() {
-  if (game.theSquare.y < columnLength - 1) {
+  // if (game.theSquare.y < columnLength - 1) {
+  if (isSpaceBelow(game.theSquare)) {
     game.theSquare.moveDown();
   } else {
     game.landedSquares.push(game.theSquare);
@@ -53,8 +56,16 @@ function updateGame() {
   render();
 }
 
+// returns true if there is a space below the square.
+function isSpaceBelow(square) {
+  let isHittingLanded = 
+  game.landedSquares.some(s => s.y === square.y + 1 && s.x === square.x);
+  let isHittingBottom = square.y === columnLength - 1;
+  return !isHittingLanded && !isHittingBottom;
+}
+
 // Refreshes the game image by overwritting previous image
-// and drawing new square.
+// and drawing new game.
 function render() {
   // game area
   // border
@@ -65,9 +76,11 @@ function render() {
   ctx.fillRect(LEFT, TOP, width, height);
   // The next square.
   game.theSquare.draw();
+  // the landed squres
   drawLandedSquares();
 }
 
+// draws all landed squares
 function drawLandedSquares() {
   game.landedSquares.forEach(s => s.draw());
 }
@@ -82,7 +95,12 @@ function Square(x, y, color) {
   this.color = color;
   this.draw = function() {
     ctx.strokeStyle = color;
-    ctx.strokeRect(LEFT + this.x * squareSize, TOP + this.y * squareSize, squareSize, squareSize);
+    ctx.strokeRect(
+      LEFT + this.x * squareSize, 
+      TOP + this.y * squareSize, 
+      squareSize, 
+      squareSize
+    );
   }
   this.moveLeft = function() {
     if (this.x > 0) {
@@ -109,8 +127,10 @@ function handleKeyDown(e) {
       render();
       break;
     case keyDowsn:
-      game.theSquare.moveDown();
-      render();
+      if (isSpaceBelow(game.theSquare)) {
+        game.theSquare.moveDown();
+        render();
+      }
       break;
     case keyRight:
       game.theSquare.moveRight();
