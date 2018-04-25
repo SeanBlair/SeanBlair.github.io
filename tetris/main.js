@@ -24,13 +24,17 @@ const keyLeft = 37;
 const keyDowsn = 40;
 const keyRight = 39;
 // Initial update interval in milliseconds
-let updateInterval = 500;
+const initialGameInterval = 500;
+let updateInterval = initialGameInterval;
 // add listener for user keyboard input
 window.addEventListener('keydown', handleKeyDown);
-
-// Entry point
-beginGame();
-
+// Start/stop button
+const startButton = document.querySelector('.start');
+startButton.onclick = startGame;
+// Reset button
+const resetButton = document.querySelector('.reset');
+resetButton.style.visibility = 'hidden';
+resetButton.onclick = resetGame;
 // The game object
 let game = {
   theShape: new OShape(),
@@ -38,9 +42,29 @@ let game = {
   landedSquares: []
 }
 
+// for stopping setInterval()
+let interval;
+
 // Periodically calls updatedGame() after updateInterval milliseconds. 
-function beginGame() {
-  setInterval(updateGame, updateInterval);
+function startGame() {
+  startButton.textContent = 'Pause';
+  startButton.onclick = pauseGame;
+  resetButton.style.visibility = 'visible';
+  interval = setInterval(updateGame, updateInterval);
+  render();
+}
+
+function pauseGame() {
+  startButton.textContent = 'Continue';
+  startButton.onclick = startGame;
+  clearInterval(interval);
+}
+
+function resetGame() {
+  pauseGame();
+  game.theShape = new OShape();
+  game.landedSquares = [];
+  startGame();
 }
 
 // Lowers the shape one squareSize if possible
