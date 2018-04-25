@@ -23,6 +23,8 @@ const height = squareSize * columnLength;
 const keyLeft = 37;
 const keyDowsn = 40;
 const keyRight = 39;
+const keyF = 70;
+const keyD = 68;
 // Initial update interval in milliseconds
 const initialGameInterval = 500;
 let updateInterval = initialGameInterval;
@@ -37,7 +39,7 @@ resetButton.style.visibility = 'hidden';
 resetButton.onclick = resetGame;
 // The game object
 let game = {
-  theShape: new OShape(),
+  theShape: new TShape(),
   // theSquare: new Square(5, 0, 'blue'),
   landedSquares: []
 }
@@ -54,15 +56,17 @@ function startGame() {
   render();
 }
 
+// pauses the game by stopping the setInterval()
 function pauseGame() {
   startButton.textContent = 'Continue';
   startButton.onclick = startGame;
   clearInterval(interval);
 }
 
+// resets the game state and starts it
 function resetGame() {
   pauseGame();
-  game.theShape = new OShape();
+  game.theShape = new TShape();
   game.landedSquares = [];
   startGame();
 }
@@ -77,7 +81,7 @@ function updateGame() {
     // Appends the landed shape's squares to the landedSquares array
     Array.prototype.push.apply(game.landedSquares, game.theShape.squares);
     removeFullRows();
-    game.theShape = new OShape();
+    game.theShape = new TShape();
   }
   render();
 }
@@ -180,15 +184,48 @@ function Square(x, y, color) {
   }
 }
 // Todo refactor to extract all this to a generic Shape object.
-// only the rotate functions and the actual setting of original
-// tetrominos's is needed for a unique one.
-function OShape() {
+function TShape() {
+  // the "T" shape's squares as they appear at top of game.
+  // In order of column, row.
   this.squares = [
-    new Square(4, 0, 'blue'),
     new Square(5, 0, 'blue'),
     new Square(4, 1, 'blue'),
-    new Square(5, 1, 'blue')
+    new Square(5, 1, 'blue'),
+    new Square(6, 1, 'blue')
   ];
+  // a 2D array to facilitate rotation of the shape
+  this.squares2D = [[undefined, this.squares[0], undefined],
+                  [this.squares[1], this.squares[2], this.squares[3]],
+                  [undefined, undefined, undefined]];
+
+  // mutates this shape's squares' x and y coords
+  // to rotate the shape by 90 deg.
+  this.rotate = function(direction = 'clockwise') {
+    let rotated = [[,,,],[,,,],[,,,]];
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        // current square to move
+        let sq = this.squares2D[i][j];
+        // Mutate the squares x and y coords to rotate the entire shape
+        // Place the mutated square in corresponding place in new matrix.
+        if (direction === 'clockwise') {
+          if (sq) {
+            sq.x += 2 - j - i;
+            sq.y += j - i;
+          }
+          rotated[j][2 - i] = sq;
+        } else if (direction === 'counterClockWise') {
+          if (sq) {
+            sq.x += 0 - j + i;
+            sq.y += 2 - (j + i);
+          }
+          rotated[2 - j][0 + i] = sq;
+        }
+      }
+    }
+    // replace old matrix with the rotated one.
+    this.squares2D = rotated;
+  }
   this.draw = function() {
     this.squares.forEach(s => s.draw());
   };
@@ -232,5 +269,14 @@ function handleKeyDown(e) {
       game.theShape.moveRight();
       render();
     }
+    break;
+    case keyF:
+    game.theShape.rotate();
+    render();
+    break;
+    case keyD:
+    game.theShape.rotate('counterClockWise');
+    render();
+    break;
   } 
 }
