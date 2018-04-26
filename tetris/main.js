@@ -23,10 +23,10 @@ const height = squareSize * columnLength;
 const keyLeft = 37;
 const keyDowsn = 40;
 const keyRight = 39;
-const keyF = 70;
-const keyD = 68;
+// const keyF = 70;
+// const keyD = 68;
 // Initial update interval in milliseconds
-const initialGameInterval = 500;
+const initialGameInterval = 1000;
 let updateInterval = initialGameInterval;
 // add listener for user keyboard input
 window.addEventListener('keydown', handleKeyDown);
@@ -41,11 +41,373 @@ resetButton.onclick = resetGame;
 let game = {
   theShape: new TShape(),
   // theSquare: new Square(5, 0, 'blue'),
-  landedSquares: []
+  landedSquares: [],
+  
+  state: undefined,
+
+  // initiating, pausing, dropping, moving left,
+  // moving right, moving down, rotating clockwise,
+  // rotating counter clockwise. 
+  states: {
+    initiating: {
+      initialize: function(target) {
+        this.target = target;
+      },
+      enter: function() {
+        console.log('in initiating.enter()');
+      },
+      execute: function() {
+        console.log('in initiating.execute()');
+        initiateGame();
+      },
+      initiate: function() {
+        console.log('already initiated');
+      },
+      pause: function() {
+        this.target.changeState(this.target.states.pausing);
+      },
+      drop: function() {
+        this.target.changeState(this.target.states.dropping);
+      },
+      moveLeft: function() {
+        this.target.changeState(this.target.states.movingLeft);
+      },
+      moveRight: function() {
+        this.target.changeState(this.target.states.movingRight);
+      },
+      moveDown: function() {
+        this.target.changeState(this.target.states.movingDown);
+      },
+      rotateClockWise: function() {
+        this.target.changeState(this.target.states.rotatingClockWise);
+      },
+      rotateCounterClock: function() {
+        this.target.changeState(this.target.states.rotatingCounterClock);
+      },
+      exit: function() {
+        console.log('in initiating.exit()');
+      }
+    },
+    pausing: {
+      initialize: function(target) {
+        this.target = target;
+      },
+      enter: function() {
+        console.log('in pausing.enter()');
+      },
+      execute: function() {
+        console.log('in pausing.execute()');
+      },
+      initiate: function() {
+        this.target.changeState(this.target.states.initiating);
+      },
+      pause: function() {
+        console.log('already paused');
+      },
+      drop: function() {
+        this.target.changeState(this.target.states.dropping);
+      },
+      moveLeft: function() {
+        this.target.changeState(this.target.states.movingLeft);
+      },
+      moveRight: function() {
+        this.target.changeState(this.target.states.movingRight);
+      },
+      moveDown: function() {
+        this.target.changeState(this.target.states.movingDown);
+      },
+      rotateClockWise: function() {
+        this.target.changeState(this.target.states.rotatingClockWise);
+      },
+      rotateCounterClock: function() {
+        this.target.changeState(this.target.states.rotatingCounterClock);
+      },
+      exit: function() {
+        console.log('in pausing.exit()');
+      }
+    },
+    dropping: {
+      initialize: function(target) {
+        this.target = target;
+      },
+      enter: function() {
+        console.log('in dropping.enter()');
+      },
+      execute: function() {
+        console.log('in dropping.execute()');
+      },
+      initiate: function() {
+        this.target.changeState(this.target.states.initiating);
+      },
+      pause: function() {
+        this.target.changeState(this.target.states.pausing);
+      },
+      drop: function() {
+        console.log('already dropping');
+      },
+      moveLeft: function() {
+        this.target.changeState(this.target.states.movingLeft);
+      },
+      moveRight: function() {
+        this.target.changeState(this.target.states.movingRight);
+      },
+      moveDown: function() {
+        this.target.changeState(this.target.states.movingDown);
+      },
+      rotateClockWise: function() {
+        this.target.changeState(this.target.states.rotatingClockWise);
+      },
+      rotateCounterClock: function() {
+        this.target.changeState(this.target.states.rotatingCounterClock);
+      },
+      exit: function() {
+        console.log('in dropping.exit()');
+      }
+    },
+    movingLeft: {
+      initialize: function(target) {
+        this.target = target;
+      },
+      enter: function() {
+        console.log('in movingLeft.enter()');
+      },
+      execute: function() {
+        console.log('in movingLeft.execute()');
+      },
+      initiate: function() {
+        this.target.changeState(this.target.states.initiating);
+      },
+      pause: function() {
+        this.target.changeState(this.target.states.pausing);
+      },
+      drop: function() {
+        this.target.changeState(this.target.states.dropping);
+      },
+      moveLeft: function() {
+        console.log('already moving left');
+      },
+      moveRight: function() {
+        this.target.changeState(this.target.states.movingRight);
+      },
+      moveDown: function() {
+        this.target.changeState(this.target.states.movingDown);
+      },
+      rotateClockWise: function() {
+        this.target.changeState(this.target.states.rotatingClockWise);
+      },
+      rotateCounterClock: function() {
+        this.target.changeState(this.target.states.rotatingCounterClock);
+      },
+      exit: function() {
+        console.log('in movingLeft.exit()');
+      }
+    },
+    movingRight: {
+      initialize: function(target) {
+        this.target = target;
+      },
+      enter: function() {
+        console.log('in movingRight.enter()');
+      },
+      execute: function() {
+        console.log('in movingRight.execute()');
+      },
+      initiate: function() {
+        this.target.changeState(this.target.states.initiating);
+      },
+      pause: function() {
+        this.target.changeState(this.target.states.pausing);
+      },
+      drop: function() {
+        this.target.changeState(this.target.states.dropping);
+      },
+      moveLeft: function() {
+        this.target.changeState(this.target.states.movingLeft);
+      },
+      moveRight: function() {
+        console.log('already moving right');
+      },
+      moveDown: function() {
+        this.target.changeState(this.target.states.movingDown);
+      },
+      rotateClockWise: function() {
+        this.target.changeState(this.target.states.rotatingClockWise);
+      },
+      rotateCounterClock: function() {
+        this.target.changeState(this.target.states.rotatingCounterClock);
+      },
+      exit: function() {
+        console.log('in movingLeft.exit()');
+      }
+    },
+    movingDown: {
+      initialize: function(target) {
+        this.target = target;
+      },
+      enter: function() {
+        console.log('in movingDown.enter()');
+      },
+      execute: function() {
+        console.log('in movingDown.execute()');
+      },
+      initiate: function() {
+        this.target.changeState(this.target.states.initiating);
+      },
+      pause: function() {
+        this.target.changeState(this.target.states.pausing);
+      },
+      drop: function() {
+        this.target.changeState(this.target.states.dropping);
+      },
+      moveLeft: function() {
+        this.target.changeState(this.target.states.movingLeft);
+      },
+      moveRight: function() {
+        this.target.changeState(this.target.states.movingRight);
+      },
+      moveDown: function() {
+        console.log('already moving down');
+      },
+      rotateClockWise: function() {
+        this.target.changeState(this.target.states.rotatingClockWise);
+      },
+      rotateCounterClock: function() {
+        this.target.changeState(this.target.states.rotatingCounterClock);
+      },
+      exit: function() {
+        console.log('in movingDown.exit()');
+      }
+    },
+    rotatingClockWise: {
+      initialize: function(target) {
+        this.target = target;
+      },
+      enter: function() {
+        console.log('in rotatingClockwise.enter()');
+      },
+      execute: function() {
+        console.log('in rotatingClockwise.execute()');
+      },
+      initiate: function() {
+        this.target.changeState(this.target.states.initiating);
+      },
+      pause: function() {
+        this.target.changeState(this.target.states.pausing);
+      },
+      drop: function() {
+        this.target.changeState(this.target.states.dropping);
+      },
+      moveLeft: function() {
+        this.target.changeState(this.target.states.movingLeft);
+      },
+      moveRight: function() {
+        this.target.changeState(this.target.states.movingRight);
+      },
+      moveDown: function() {
+        this.target.changeState(this.target.states.movingDown);
+        
+      },
+      rotateClockWise: function() {
+        console.log('already rotating clockwise');
+      },
+      rotateCounterClock: function() {
+        this.target.changeState(this.target.states.rotatingCounterClock);
+      },
+      exit: function() {
+        console.log('in rotatingClockwise.exit()');
+      }
+    },
+    rotatingCounterClock: {
+      initialize: function(target) {
+        this.target = target;
+      },
+      enter: function() {
+        console.log('in rotatingCounterClock.enter()');
+      },
+      execute: function() {
+        console.log('in rotatingCounterClock.execute()');
+      },
+      initiate: function() {
+        this.target.changeState(this.target.states.initiating);
+      },
+      pause: function() {
+        this.target.changeState(this.target.states.pausing);
+      },
+      drop: function() {
+        this.target.changeState(this.target.states.dropping);
+      },
+      moveLeft: function() {
+        this.target.changeState(this.target.states.movingLeft);
+      },
+      moveRight: function() {
+        this.target.changeState(this.target.states.movingRight);
+      },
+      moveDown: function() {
+        this.target.changeState(this.target.states.movingDown);
+      },
+      rotateClockWise: function() {
+        this.target.changeState(this.target.states.rotatingClockWise);
+      },
+      rotateCounterClock: function() {
+        console.log('already rotating counter clockwise');
+      },
+      exit: function() {
+        console.log('in rotatingCounterClock.exit()');
+      }
+    }
+  },
+  initialize: function() {
+    this.states.initiating.initialize(this);
+    this.states.pausing.initialize(this);
+    this.states.dropping.initialize(this);
+    this.states.movingLeft.initialize(this);
+    this.states.movingRight.initialize(this);
+    this.states.movingDown.initialize(this);
+    this.states.rotatingClockWise.initialize(this);
+    this.states.rotatingCounterClock.initialize(this);
+    this.state = this.states.initiating;
+  },
+  initiate: function() {
+    this.state.initiate();
+  },
+  pause: function() {
+    this.state.pause();
+  },
+  drop: function() {
+    this.state.drop();
+  },
+  moveLeft: function() {
+    this.state.moveLeft();
+  },
+  moveRight: function() {
+    this.state.moveRight();
+  },
+  moveDown: function() {
+    this.state.moveDown();
+  },
+  rotateClockWise: function() {
+    this.state.rotateClockWise();
+  },
+  rotateCounterClock: function() {
+    this.state.rotateCounterClock();
+  },
+  changeState: function(state) {
+    if (this.state !== state) {
+      this.state.exit();
+      this.state = state;
+      this.state.enter();
+      this.state.execute();
+    }
+  }
 }
 
 // for stopping setInterval()
 let interval;
+
+function initiateGame() {
+  
+}
+
 
 // Periodically calls updatedGame() after updateInterval milliseconds. 
 function startGame() {
@@ -194,38 +556,103 @@ function TShape() {
     new Square(6, 1, 'blue')
   ];
   // a 2D array to facilitate rotation of the shape
-  this.squares2D = [[undefined, this.squares[0], undefined],
-                  [this.squares[1], this.squares[2], this.squares[3]],
-                  [undefined, undefined, undefined]];
+  // this.squares2D = [[undefined, this.squares[0], undefined],
+  //                 [this.squares[1], this.squares[2], this.squares[3]],
+  //                 [undefined, undefined, undefined]];
 
   // mutates this shape's squares' x and y coords
   // to rotate the shape by 90 deg.
-  this.rotate = function(direction = 'clockwise') {
-    let rotated = [[,,,],[,,,],[,,,]];
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        // current square to move
-        let sq = this.squares2D[i][j];
-        // Mutate the squares x and y coords to rotate the entire shape
-        // Place the mutated square in corresponding place in new matrix.
-        if (direction === 'clockwise') {
-          if (sq) {
-            sq.x += 2 - j - i;
-            sq.y += j - i;
-          }
-          rotated[j][2 - i] = sq;
-        } else if (direction === 'counterClockWise') {
-          if (sq) {
-            sq.x += 0 - j + i;
-            sq.y += 2 - (j + i);
-          }
-          rotated[2 - j][0 + i] = sq;
-        }
-      }
-    }
-    // replace old matrix with the rotated one.
-    this.squares2D = rotated;
-  }
+  // this.rotate = function(direction = 'clockwise') {
+  //   // Deep copies of the 2d matrix.
+  //   // Need to preserve the original in case the rotation conflicts with game.
+  //   let squares2DClone = JSON.parse(JSON.stringify(this.squares2D));
+  //   let rotated = JSON.parse(JSON.stringify(squares2DClone));
+  //   // make a squares deep copy.
+  //   let squaresClone = [];
+  //   squares2DClone.forEach(a => a.forEach(s => {if (s) squaresClone.push(s)}));
+  //   for (let i = 0; i < 3; i++) {
+  //     for (let j = 0; j < 3; j++) {
+  //       // current square to move
+  //       // let sq = this.squares2D[i][j];
+  //       let sq = squares2DClone[i][j];
+  //       // Mutate the squares x and y coords to rotate the entire shape
+  //       // Place the mutated square in corresponding place in new matrix.
+  //       if (direction === 'clockwise') {
+  //         if (sq) {
+  //           sq.x += 2 - j - i;
+  //           sq.y += j - i;
+  //         }
+  //         rotated[j][2 - i] = sq;
+  //       } else if (direction === 'counterClockWise') {
+  //         if (sq) {
+  //           sq.x += 0 - j + i;
+  //           sq.y += 2 - (j + i);
+  //         }
+  //         rotated[2 - j][0 + i] = sq;
+  //       }
+  //     }
+  //   }
+  //   // only use rotated if it fits in game state.
+  //   if (isSpaceToRotate(rotated)) {
+  //     // replace old matrix with the rotated one.
+  //     this.squares2D = rotated;
+  //     this.squares = squaresClone;
+  //   }
+  // }
+
+
+  // Need to make rotate and update mutually exclusive. They share
+  // state (game.theShape) and when both are called simultaneously,
+  // it breaks.
+  // need to somehow make calls to update() wait for rotate() to finish?
+
+  // Rotate is tricky (need to disallow if rotating conflicts with borders
+// or landed squares), but need to rotate in order to check this.
+// Maybe rotate a copy and check if hits anything? if ok, then rotate the
+// actual shape? Still need update() to wait for rotate to be finished.
+//
+  // this.rotate = function(direction = 'clockwise', firstTry = true) {
+
+  //   let rotated = [[,,,],[,,,],[,,,]];
+ 
+  //   for (let i = 0; i < 3; i++) {
+  //     for (let j = 0; j < 3; j++) {
+  //       // current square to move
+  //       let sq = this.squares2D[i][j];
+  //       // Mutate the squares x and y coords to rotate the entire shape
+  //       // Place the mutated square in corresponding place in new matrix.
+  //       if (direction === 'clockwise') {
+  //         if (sq) {
+  //           sq.x += 2 - j - i;
+  //           sq.y += j - i;
+  //         }
+  //         rotated[j][2 - i] = sq;
+  //       } else if (direction === 'counterClockWise') {
+  //         if (sq) {
+  //           sq.x += 0 - j + i;
+  //           sq.y += 2 - (j + i);
+  //         }
+  //         rotated[2 - j][0 + i] = sq;
+  //       }
+  //     }
+  //   }
+  //   if (!firstTry) {
+  //     return;
+  //   }
+  //   if (!isSpaceToRotate(rotated)) {
+  //     // rotate back.
+  //     if (direction === 'clockwise') {
+  //       this.rotate('counterClockWise', false);
+  //     } else {
+  //       this.rotate('clockwise', false);
+  //     }
+  //   } else {
+  //     // replace 2D matrix;
+  //     this.squares2D = rotated;
+  //   }
+  // }
+
+
   this.draw = function() {
     this.squares.forEach(s => s.draw());
   };
@@ -249,6 +676,17 @@ function TShape() {
   };
 }
 
+// function isSpaceToRotate(rotated2D) {
+//   function hasSpace(sq) {
+//     let isSpaceFromLanded = game.landedSquares.every(
+//       ls => ls.x !== sq.x && ls.y !== sq.y
+//     );
+//     let isInBounds = sq.x >= 0 && sq.x < rowLength && sq.y < columnLength - 1;
+//     return isSpaceFromLanded && isInBounds;
+//   };
+//   return rotated2D.every(a => a.every(s => s ? hasSpace(s) : true));
+// }
+
 // User input handler
 function handleKeyDown(e) {
   switch (e.keyCode) {
@@ -270,13 +708,13 @@ function handleKeyDown(e) {
       render();
     }
     break;
-    case keyF:
-    game.theShape.rotate();
-    render();
-    break;
-    case keyD:
-    game.theShape.rotate('counterClockWise');
-    render();
-    break;
+    // case keyF:
+    // game.theShape.rotate();
+    // render();
+    // break;
+    // case keyD:
+    // game.theShape.rotate('counterClockWise');
+    // render();
+    // break;
   } 
 }
