@@ -23,8 +23,8 @@ const height = squareSize * columnLength;
 const keyLeft = 37;
 const keyDowsn = 40;
 const keyRight = 39;
-// const keyF = 70;
-// const keyD = 68;
+const keyF = 70;
+const keyD = 68;
 // Initial update interval in milliseconds
 const initialGameInterval = 1000;
 let updateInterval;
@@ -36,7 +36,7 @@ const startButton = document.querySelector('.start');
 const resetButton = document.querySelector('.reset');
 // The game object
 let game = {
-  theShape: new OShape(),
+  theShape: undefined,
   landedSquares: [],
   state: undefined,
   // initiating, starting, pausing, dropping, moving left,
@@ -316,6 +316,7 @@ let game = {
       },
       execute: function() {
         console.log('in rotatingClockwise.execute()');
+        rotateClockWise();
       },
       initiate: function() {
         this.target.changeState(this.target.states.initiating);
@@ -334,10 +335,10 @@ let game = {
       },
       moveDown: function() {
         this.target.changeState(this.target.states.movingDown);
-        
       },
       rotateClockWise: function() {
         console.log('already rotating clockwise');
+        rotateClockWise();
       },
       rotateCounterClock: function() {
         this.target.changeState(this.target.states.rotatingCounterClock);
@@ -355,6 +356,7 @@ let game = {
       },
       execute: function() {
         console.log('in rotatingCounterClock.execute()');
+        rotateCounterClockwise();
       },
       initiate: function() {
         this.target.changeState(this.target.states.initiating);
@@ -379,6 +381,7 @@ let game = {
       },
       rotateCounterClock: function() {
         console.log('already rotating counter clockwise');
+        rotateCounterClockwise();
       },
       exit: function() {
         console.log('in rotatingCounterClock.exit()');
@@ -436,13 +439,15 @@ let game = {
 
 // for stopping setInterval()
 let interval;
+// initialize game object.
 game.initialize();
+// initiate game state.
 initiateGame();
 
 // initiates the state for a new game.
 function initiateGame() {
   clearInterval(interval);
-  game.theShape = new OShape();
+  game.theShape = undefined;
   game.landedSquares = [];
   updateInterval = initialGameInterval;
   startButton.textContent = 'Start';
@@ -477,7 +482,7 @@ function moveLeft() {
   }
 }
 
-// if space on righ, moves shape right one space and renders the game;
+// if space on right, moves shape right one space and renders the game;
 function moveRight() {
   if (game.theShape.isSpaceOnRight()) {
     game.theShape.moveRight();
@@ -493,20 +498,38 @@ function moveDown() {
   }
 }
 
+// If space to rotate clockwise, rotates the shape. Renders the game
+function rotateClockWise() {
+  game.theShape.rotate('clockwise');
+  render();
+}
+
+// If space to rotate counter clockwise, rotates the shape. Renders the game
+function rotateCounterClockwise() {
+  game.theShape.rotate('counterClockWise');
+  render();
+}
+
 // Lowers the shape one squareSize if possible
 // otherwise creates new shape to lower.
 // renders the new game state.
 function drop() {
-  if (game.theShape.isSpaceBelow()) {
+  // Adds a shape on first call
+  if (!game.theShape) {
+    game.theShape = new TShape();
+    // is exists and possible drops shape one space
+  } else if (game.theShape.isSpaceBelow()) {
     game.theShape.moveDown();
   } else {
     // Appends the landed shape's squares to the landedSquares array
     Array.prototype.push.apply(game.landedSquares, game.theShape.squares);
     removeFullRows();
-    game.theShape = new OShape();
+    // adds new shape to game
+    game.theShape = new TShape();
   }
   render();
 }
+
 
 // Removes any full rows and then drops any square above.
 function removeFullRows() {
@@ -549,7 +572,7 @@ function render() {
   ctx.strokeStyle = 'rgb(0, 0, 0)';
   ctx.strokeRect(LEFT, TOP, width, height);
   // background
-  ctx.fillStyle = 'white';
+  ctx.fillStyle = 'lightblue';
   ctx.fillRect(LEFT, TOP, width, height);
   // The next shape.
   game.theShape.draw();
@@ -566,8 +589,8 @@ function Square(x, y, color) {
   this.y = y;
   this.color = color;
   this.draw = function() {
-    ctx.strokeStyle = color;
-    ctx.strokeRect(
+    ctx.fillStyle = color;
+    ctx.fillRect(
       LEFT + this.x * squareSize, 
       TOP + this.y * squareSize, 
       squareSize, 
@@ -606,113 +629,59 @@ function Square(x, y, color) {
   }
 }
 // Todo refactor to extract all this to a generic Shape object.
-function OShape() {
+function TShape() {
   // the "T" shape's squares as they appear at top of game.
   // In order of column, row.
   this.squares = [
-    new Square(4, 0, 'blue'),
     new Square(5, 0, 'blue'),
     new Square(4, 1, 'blue'),
-    new Square(5, 1, 'blue')
+    new Square(5, 1, 'blue'),
+    new Square(6, 1, 'blue')
   ];
   // a 2D array to facilitate rotation of the shape
-  // this.squares2D = [[undefined, this.squares[0], undefined],
-  //                 [this.squares[1], this.squares[2], this.squares[3]],
-  //                 [undefined, undefined, undefined]];
+  this.squares2D = [[undefined, this.squares[0], undefined],
+                  [this.squares[1], this.squares[2], this.squares[3]],
+                  [undefined, undefined, undefined]];
 
-  // mutates this shape's squares' x and y coords
-  // to rotate the shape by 90 deg.
-  // this.rotate = function(direction = 'clockwise') {
-  //   // Deep copies of the 2d matrix.
-  //   // Need to preserve the original in case the rotation conflicts with game.
-  //   let squares2DClone = JSON.parse(JSON.stringify(this.squares2D));
-  //   let rotated = JSON.parse(JSON.stringify(squares2DClone));
-  //   // make a squares deep copy.
-  //   let squaresClone = [];
-  //   squares2DClone.forEach(a => a.forEach(s => {if (s) squaresClone.push(s)}));
-  //   for (let i = 0; i < 3; i++) {
-  //     for (let j = 0; j < 3; j++) {
-  //       // current square to move
-  //       // let sq = this.squares2D[i][j];
-  //       let sq = squares2DClone[i][j];
-  //       // Mutate the squares x and y coords to rotate the entire shape
-  //       // Place the mutated square in corresponding place in new matrix.
-  //       if (direction === 'clockwise') {
-  //         if (sq) {
-  //           sq.x += 2 - j - i;
-  //           sq.y += j - i;
-  //         }
-  //         rotated[j][2 - i] = sq;
-  //       } else if (direction === 'counterClockWise') {
-  //         if (sq) {
-  //           sq.x += 0 - j + i;
-  //           sq.y += 2 - (j + i);
-  //         }
-  //         rotated[2 - j][0 + i] = sq;
-  //       }
-  //     }
-  //   }
-  //   // only use rotated if it fits in game state.
-  //   if (isSpaceToRotate(rotated)) {
-  //     // replace old matrix with the rotated one.
-  //     this.squares2D = rotated;
-  //     this.squares = squaresClone;
-  //   }
-  // }
-
-
-  // Need to make rotate and update mutually exclusive. They share
-  // state (game.theShape) and when both are called simultaneously,
-  // it breaks.
-  // need to somehow make calls to update() wait for rotate() to finish?
-
-  // Rotate is tricky (need to disallow if rotating conflicts with borders
-// or landed squares), but need to rotate in order to check this.
-// Maybe rotate a copy and check if hits anything? if ok, then rotate the
-// actual shape? Still need update() to wait for rotate to be finished.
-//
-  // this.rotate = function(direction = 'clockwise', firstTry = true) {
-
-  //   let rotated = [[,,,],[,,,],[,,,]];
- 
-  //   for (let i = 0; i < 3; i++) {
-  //     for (let j = 0; j < 3; j++) {
-  //       // current square to move
-  //       let sq = this.squares2D[i][j];
-  //       // Mutate the squares x and y coords to rotate the entire shape
-  //       // Place the mutated square in corresponding place in new matrix.
-  //       if (direction === 'clockwise') {
-  //         if (sq) {
-  //           sq.x += 2 - j - i;
-  //           sq.y += j - i;
-  //         }
-  //         rotated[j][2 - i] = sq;
-  //       } else if (direction === 'counterClockWise') {
-  //         if (sq) {
-  //           sq.x += 0 - j + i;
-  //           sq.y += 2 - (j + i);
-  //         }
-  //         rotated[2 - j][0 + i] = sq;
-  //       }
-  //     }
-  //   }
-  //   if (!firstTry) {
-  //     return;
-  //   }
-  //   if (!isSpaceToRotate(rotated)) {
-  //     // rotate back.
-  //     if (direction === 'clockwise') {
-  //       this.rotate('counterClockWise', false);
-  //     } else {
-  //       this.rotate('clockwise', false);
-  //     }
-  //   } else {
-  //     // replace 2D matrix;
-  //     this.squares2D = rotated;
-  //   }
-  // }
-
-
+  // If there is space to rotate 90 degrees, rotates this shape 
+  // by rotating the contents of this.squares2D, and mutating the 
+  // x and y coords of the shape's squares.                
+  this.rotate = function(direction='clockwise') {
+    // make a deep copy to check if rotation is possible
+    let squares2DClone = JSON.parse(JSON.stringify(this.squares2D)); 
+    squares2DClone = getRotated(squares2DClone);   
+    if (isSpaceToRotate(squares2DClone)) {
+      this.squares2D = getRotated(this.squares2D);
+    }
+    // returns shape2D rotated in it's matrix, and
+    // with it's squares mutated to implement the rotation.
+    function getRotated(shape2D) {
+      // a container of the correct size.
+      let rotated = [[,,,],[,,,],[,,,]];
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          // current square to move
+          let sq = shape2D[i][j];
+          // Mutate the squares x and y coords to rotate the entire shape
+          // Place the mutated square in corresponding place in new matrix.
+          if (direction === 'clockwise') {
+            if (sq) {
+              sq.x += 2 - j - i;
+              sq.y += j - i;
+            }
+            rotated[j][2 - i] = sq;
+          } else if (direction === 'counterClockWise') {
+            if (sq) {
+              sq.x += 0 - j + i;
+              sq.y += 2 - (j + i);
+            }
+            rotated[2 - j][0 + i] = sq;
+          }
+        }
+      }
+      return rotated;
+    }
+  } 
   this.draw = function() {
     this.squares.forEach(s => s.draw());
   };
@@ -736,16 +705,19 @@ function OShape() {
   };
 }
 
-// function isSpaceToRotate(rotated2D) {
-//   function hasSpace(sq) {
-//     let isSpaceFromLanded = game.landedSquares.every(
-//       ls => ls.x !== sq.x && ls.y !== sq.y
-//     );
-//     let isInBounds = sq.x >= 0 && sq.x < rowLength && sq.y < columnLength - 1;
-//     return isSpaceFromLanded && isInBounds;
-//   };
-//   return rotated2D.every(a => a.every(s => s ? hasSpace(s) : true));
-// }
+// return true is no squares in rotated2D share both x and y coords with
+// any landedSquare.
+function isSpaceToRotate(rotated2D) {
+  function hasSpace(sq) {
+    let isSpaceFromLanded = game.landedSquares.every(
+      // no landedSquare shares both x and y coords with sq
+      ls => !(ls.x === sq.x && ls.y === sq.y)
+    );
+    let isInBounds = sq.x >= 0 && sq.x < rowLength && sq.y < columnLength - 1;
+    return isSpaceFromLanded && isInBounds;
+  };
+  return rotated2D.every(a => a.every(s => s ? hasSpace(s) : true));
+}
 
 // User input handler
 function handleKeyDown(e) {
@@ -759,5 +731,10 @@ function handleKeyDown(e) {
     case keyRight:
     game.moveRight();
     break;
+    case keyF:
+    game.rotateClockWise();
+    break;
+    case keyD:
+    game.rotateCounterClock();
   } 
 }
