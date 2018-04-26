@@ -516,7 +516,8 @@ function rotateCounterClockwise() {
 function drop() {
   // Adds a shape on first call
   if (!game.theShape) {
-    game.theShape = new TShape();
+    // game.theShape = new LxShape();
+    game.theShape = getNextRandomShape();
     // is exists and possible drops shape one space
   } else if (game.theShape.isSpaceBelow()) {
     game.theShape.moveDown();
@@ -525,9 +526,27 @@ function drop() {
     Array.prototype.push.apply(game.landedSquares, game.theShape.squares);
     removeFullRows();
     // adds new shape to game
-    game.theShape = new TShape();
+    game.theShape = getNextRandomShape();
   }
   render();
+}
+
+function getNextRandomShape() {
+  let intInRange0to5 = Math.floor(Math.random() * 6);
+  switch (intInRange0to5) {
+    case 0:
+    return new TShape();
+    case 1:
+    return new OShape();
+    case 2: 
+    return new SShape();
+    case 3:
+    return new SxShape();
+    case 4:
+    return new LShape();
+    case 5:
+    return new LxShape();
+  }
 }
 
 
@@ -576,7 +595,9 @@ function render() {
   ctx.fillStyle = 'lightblue';
   ctx.fillRect(LEFT, TOP, width, height);
   // The next shape.
-  game.theShape.draw();
+  if (game.theShape) {
+    game.theShape.draw();
+  }
   // the landed squares
   game.landedSquares.forEach(s => s.draw());
 }
@@ -592,10 +613,10 @@ function Square(x, y, color) {
   this.draw = function() {
     ctx.fillStyle = color;
     ctx.fillRect(
-      LEFT + this.x * squareSize, 
-      TOP + this.y * squareSize, 
-      squareSize, 
-      squareSize
+      LEFT + this.x * squareSize + 1, 
+      TOP + this.y * squareSize + 1, 
+      squareSize - 1, 
+      squareSize - 1
     );
   }
   this.moveLeft = function() {
@@ -704,13 +725,102 @@ function TShape() {
     new Square(5, 1, 'blue'),
     new Square(6, 1, 'blue')
   ];
-  this.squares2D = [[undefined, this.squares[0], undefined],
-                    [this.squares[1], this.squares[2], this.squares[3]],
-                    [undefined, undefined, undefined]];
+  this.squares2D = [
+    [undefined, this.squares[0], undefined],
+    [this.squares[1], this.squares[2], this.squares[3]],
+    [undefined, undefined, undefined]
+  ];
 }
 TShape.prototype = Object.create(Shape.prototype);
 TShape.prototype.constructor = TShape;
 
+function SShape() {
+  Shape.call(this);
+  this.squares = [
+    new Square(4, 0, 'red'),
+    new Square(4, 1, 'red'),
+    new Square(5, 1, 'red'),
+    new Square(5, 2, 'red')
+  ];
+  this.squares2D = [
+    [this.squares[0], undefined, undefined],
+    [this.squares[1], this.squares[2], undefined],
+    [undefined, this.squares[3], undefined]
+  ];
+}
+SShape.prototype = Object.create(Shape.prototype);
+SShape.prototype.constructor = SShape;
+
+// Mirrored SShape
+function SxShape() {
+  Shape.call(this);
+  this.squares = [
+    new Square(5, 0, 'purple'),
+    new Square(4, 1, 'purple'),
+    new Square(5, 1, 'purple'),
+    new Square(4, 2, 'purple')
+  ];
+  this.squares2D = [
+    [undefined, this.squares[0], undefined],
+    [this.squares[1], this.squares[2], undefined],
+    [this.squares[3], undefined, undefined]
+  ];
+}
+SxShape.prototype = Object.create(Shape.prototype);
+SxShape.prototype.constructor = SxShape;
+
+
+
+function LShape() {
+  Shape.call(this);
+  this.squares = [
+    new Square(5, 0, 'yellow'),
+    new Square(5, 1, 'yellow'),
+    new Square(5, 2, 'yellow'),
+    new Square(6, 2, 'yellow')
+  ];
+  this.squares2D = [
+    [undefined, this.squares[0], undefined],
+    [undefined, this.squares[1], undefined],
+    [undefined, this.squares[2], this.squares[3]]
+  ];
+}
+LShape.prototype = Object.create(Shape.prototype);
+LShape.prototype.constructor = LShape;
+
+
+function LxShape() {
+  Shape.call(this);
+  this.squares = [
+    new Square(5, 0, 'orange'),
+    new Square(5, 1, 'orange'),
+    new Square(4, 2, 'orange'),
+    new Square(5, 2, 'orange')
+  ];
+  this.squares2D = [
+    [undefined, this.squares[0], undefined],
+    [undefined, this.squares[1], undefined],
+    [this.squares[2], this.squares[3], undefined]
+  ];
+}
+LxShape.prototype = Object.create(Shape.prototype);
+LxShape.prototype.constructor = LxShape;
+
+
+function OShape() {
+  Shape.call(this);
+  this.squares = [
+    new Square(4, 0, 'green'),
+    new Square(5, 0, 'green'),
+    new Square(4, 1, 'green'),
+    new Square(5, 1, 'green')
+  ];
+  // no need for 2D matrix as rotation is ignored.
+  // rotation does not change this shape
+  this.rotate = function() {};
+}
+OShape.prototype = Object.create(Shape.prototype);
+OShape.prototype.constructor = OShape;
 
 // return true is no squares in rotated2D share both x and y coords with
 // any landedSquare.
