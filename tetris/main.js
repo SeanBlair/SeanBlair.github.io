@@ -32,11 +32,8 @@ let updateInterval;
 window.addEventListener('keydown', handleKeyDown);
 // Start/stop button
 const startButton = document.querySelector('.start');
-// startButton.onclick = startGame;
 // Reset button
 const resetButton = document.querySelector('.reset');
-// resetButton.style.visibility = 'hidden';
-// resetButton.onclick = resetGame;
 // The game object
 let game = {
   theShape: new TShape(),
@@ -58,10 +55,10 @@ let game = {
       },
       execute: function() {
         console.log('in initiating.execute()');
+        initiateGame();
       },
       initiate: function() {
         console.log('already initiated');
-        initiateGame();
       },
       pause: function() {
         this.target.changeState(this.target.states.pausing);
@@ -97,6 +94,7 @@ let game = {
       },
       execute: function() {
         console.log('in pausing.execute()');
+        pauseGame();
       },
       initiate: function() {
         this.target.changeState(this.target.states.initiating);
@@ -135,6 +133,10 @@ let game = {
       },
       execute: function() {
         console.log('in dropping.execute()');
+        // called when transitioning to dropping state
+        // calls drop(); Test this logic when receiving
+        // many state change requests...
+        startGame();
       },
       initiate: function() {
         this.target.changeState(this.target.states.initiating);
@@ -144,6 +146,9 @@ let game = {
       },
       drop: function() {
         console.log('already dropping');
+        // called when already in dropping state by
+        // setInterval()
+        drop();
       },
       moveLeft: function() {
         this.target.changeState(this.target.states.movingLeft);
@@ -162,6 +167,7 @@ let game = {
       },
       exit: function() {
         console.log('in dropping.exit()');
+        clearInterval(interval);
       }
     },
     movingLeft: {
@@ -404,47 +410,47 @@ let game = {
 // for stopping setInterval()
 let interval;
 game.initialize();
-game.initiate();
-
+initiateGame();
+// called on initiating.execute()
 function initiateGame() {
   game.theShape = new TShape();
   game.landedSquares = [];
   updateInterval = initialGameInterval;
-  startButton.onclick = game.drop();
+  startButton.textContent = 'Start';
+  startButton.onclick = (() => game.drop());
   resetButton.style.visibility = 'hidden';
-  resetButton.onclick = game.initiate();
+  resetButton.onclick = (() => game.initiate());
   render();
 }
-
 
 // Periodically calls updatedGame() after updateInterval milliseconds. 
 function startGame() {
   startButton.textContent = 'Pause';
-  startButton.onclick = pauseGame;
+  startButton.onclick = (() => game.pause());
   resetButton.style.visibility = 'visible';
-  interval = setInterval(updateGame, updateInterval);
+  interval = setInterval(() => game.drop(), updateInterval);
   render();
 }
 
 // pauses the game by stopping the setInterval()
 function pauseGame() {
   startButton.textContent = 'Continue';
-  startButton.onclick = startGame;
-  clearInterval(interval);
+  startButton.onclick = (() => game.drop());
+  // clearInterval(interval);
 }
 
 // resets the game state and starts it
-function resetGame() {
-  pauseGame();
-  game.theShape = new TShape();
-  game.landedSquares = [];
-  startGame();
-}
+// function resetGame() {
+//   pauseGame();
+//   game.theShape = new TShape();
+//   game.landedSquares = [];
+//   startGame();
+// }
 
 // Lowers the shape one squareSize if possible
 // otherwise creates new shape to lower.
 // renders the new game state.
-function updateGame() {
+function drop() {
   if (game.theShape.isSpaceBelow()) {
     game.theShape.moveDown();
   } else {
