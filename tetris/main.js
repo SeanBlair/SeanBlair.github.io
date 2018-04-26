@@ -36,13 +36,10 @@ const startButton = document.querySelector('.start');
 const resetButton = document.querySelector('.reset');
 // The game object
 let game = {
-  theShape: new TShape(),
-  // theSquare: new Square(5, 0, 'blue'),
+  theShape: new OShape(),
   landedSquares: [],
-  
   state: undefined,
-
-  // initiating, pausing, dropping, moving left,
+  // initiating, starting, pausing, dropping, moving left,
   // moving right, moving down, rotating clockwise,
   // rotating counter clockwise. 
   states: {
@@ -59,6 +56,9 @@ let game = {
       },
       initiate: function() {
         console.log('already initiated');
+      },
+      start: function() {
+        this.target.changeState(this.target.states.starting);
       },
       pause: function() {
         this.target.changeState(this.target.states.pausing);
@@ -83,6 +83,39 @@ let game = {
       },
       exit: function() {
         console.log('in initiating.exit()');
+      }
+    },
+    starting: {
+      initialize: function(target) {
+        this.target = target;
+      },
+      enter: function() {
+        console.log('in starting.enter()');
+      },
+      execute: function() {
+        console.log('in starting.execute()')
+        startGame();
+      },
+      initiate: function() {
+        this.target.changeState(this.target.states.initiating);
+      },
+      start: function() {
+        console.log('already in starting')
+      },
+      drop: function() {
+        this.target.changeState(this.target.states.dropping);
+      },
+      moveLeft: function() {
+        this.target.changeState(this.target.states.movingLeft);
+      },
+      moveRight: function() {
+        this.target.changeState(this.target.states.movingRight);
+      },
+      moveDown: function() {
+        this.target.changeState(this.target.states.movingDown);
+      },
+      exit: function() {
+        console.log('in starting.exit()');
       }
     },
     pausing: {
@@ -133,10 +166,7 @@ let game = {
       },
       execute: function() {
         console.log('in dropping.execute()');
-        // called when transitioning to dropping state
-        // calls drop(); Test this logic when receiving
-        // many state change requests...
-        startGame();
+        drop();
       },
       initiate: function() {
         this.target.changeState(this.target.states.initiating);
@@ -146,8 +176,6 @@ let game = {
       },
       drop: function() {
         console.log('already dropping');
-        // called when already in dropping state by
-        // setInterval()
         drop();
       },
       moveLeft: function() {
@@ -167,7 +195,6 @@ let game = {
       },
       exit: function() {
         console.log('in dropping.exit()');
-        clearInterval(interval);
       }
     },
     movingLeft: {
@@ -179,6 +206,7 @@ let game = {
       },
       execute: function() {
         console.log('in movingLeft.execute()');
+        moveLeft();
       },
       initiate: function() {
         this.target.changeState(this.target.states.initiating);
@@ -191,6 +219,7 @@ let game = {
       },
       moveLeft: function() {
         console.log('already moving left');
+        moveLeft();
       },
       moveRight: function() {
         this.target.changeState(this.target.states.movingRight);
@@ -217,6 +246,7 @@ let game = {
       },
       execute: function() {
         console.log('in movingRight.execute()');
+        moveRight();
       },
       initiate: function() {
         this.target.changeState(this.target.states.initiating);
@@ -232,6 +262,7 @@ let game = {
       },
       moveRight: function() {
         console.log('already moving right');
+        moveRight();
       },
       moveDown: function() {
         this.target.changeState(this.target.states.movingDown);
@@ -255,6 +286,7 @@ let game = {
       },
       execute: function() {
         console.log('in movingDown.execute()');
+        moveDown();
       },
       initiate: function() {
         this.target.changeState(this.target.states.initiating);
@@ -273,6 +305,7 @@ let game = {
       },
       moveDown: function() {
         console.log('already moving down');
+        moveDown();
       },
       rotateClockWise: function() {
         this.target.changeState(this.target.states.rotatingClockWise);
@@ -364,6 +397,7 @@ let game = {
   },
   initialize: function() {
     this.states.initiating.initialize(this);
+    this.states.starting.initialize(this);
     this.states.pausing.initialize(this);
     this.states.dropping.initialize(this);
     this.states.movingLeft.initialize(this);
@@ -375,6 +409,9 @@ let game = {
   },
   initiate: function() {
     this.state.initiate();
+  },
+  start: function() {
+    this.state.start();
   },
   pause: function() {
     this.state.pause();
@@ -411,19 +448,21 @@ let game = {
 let interval;
 game.initialize();
 initiateGame();
-// called on initiating.execute()
+
+// initiates the state for a new game.
 function initiateGame() {
-  game.theShape = new TShape();
+  game.theShape = new OShape();
   game.landedSquares = [];
   updateInterval = initialGameInterval;
   startButton.textContent = 'Start';
-  startButton.onclick = (() => game.drop());
+  startButton.onclick = (() => game.start());
   resetButton.style.visibility = 'hidden';
   resetButton.onclick = (() => game.initiate());
   render();
 }
 
-// Periodically calls updatedGame() after updateInterval milliseconds. 
+// Starts setInterval() with current value of updateInterval
+// and changes start button to pause button.
 function startGame() {
   startButton.textContent = 'Pause';
   startButton.onclick = (() => game.pause());
@@ -433,19 +472,35 @@ function startGame() {
 }
 
 // pauses the game by stopping the setInterval()
-function pauseGame() {
-  startButton.textContent = 'Continue';
-  startButton.onclick = (() => game.drop());
-  // clearInterval(interval);
+// function pauseGame() {
+//   startButton.textContent = 'Continue';
+//   startButton.onclick = (() => game.drop());
+//   // clearInterval(interval);
+// }
+
+// if space on left, moves shape left one space and renders the game;
+function moveLeft() {
+  if (game.theShape.isSpaceOnLeft()) {
+    game.theShape.moveLeft();
+    render();
+  }
 }
 
-// resets the game state and starts it
-// function resetGame() {
-//   pauseGame();
-//   game.theShape = new TShape();
-//   game.landedSquares = [];
-//   startGame();
-// }
+// if space on righ, moves shape right one space and renders the game;
+function moveRight() {
+  if (game.theShape.isSpaceOnRight()) {
+    game.theShape.moveRight();
+    render();
+  }
+}
+
+// if space below, moves shape down one space and renders the game;
+function moveDown() {
+  if (game.theShape.isSpaceBelow()) {
+    game.theShape.moveDown();
+    render();
+  }
+}
 
 // Lowers the shape one squareSize if possible
 // otherwise creates new shape to lower.
@@ -457,7 +512,7 @@ function drop() {
     // Appends the landed shape's squares to the landedSquares array
     Array.prototype.push.apply(game.landedSquares, game.theShape.squares);
     removeFullRows();
-    game.theShape = new TShape();
+    game.theShape = new OShape();
   }
   render();
 }
@@ -560,14 +615,14 @@ function Square(x, y, color) {
   }
 }
 // Todo refactor to extract all this to a generic Shape object.
-function TShape() {
+function OShape() {
   // the "T" shape's squares as they appear at top of game.
   // In order of column, row.
   this.squares = [
+    new Square(4, 0, 'blue'),
     new Square(5, 0, 'blue'),
     new Square(4, 1, 'blue'),
-    new Square(5, 1, 'blue'),
-    new Square(6, 1, 'blue')
+    new Square(5, 1, 'blue')
   ];
   // a 2D array to facilitate rotation of the shape
   // this.squares2D = [[undefined, this.squares[0], undefined],
@@ -705,30 +760,13 @@ function TShape() {
 function handleKeyDown(e) {
   switch (e.keyCode) {
     case keyLeft:
-    if (game.theShape.isSpaceOnLeft()) {
-      game.theShape.moveLeft();
-      render();
-    }
+    game.moveLeft();
     break;
     case keyDowsn:
-    if (game.theShape.isSpaceBelow()) {
-      game.theShape.moveDown();
-      render();
-    }
+    game.moveDown();
     break;
     case keyRight:
-    if (game.theShape.isSpaceOnRight()) {
-      game.theShape.moveRight();
-      render();
-    }
+    game.moveRight();
     break;
-    // case keyF:
-    // game.theShape.rotate();
-    // render();
-    // break;
-    // case keyD:
-    // game.theShape.rotate('counterClockWise');
-    // render();
-    // break;
   } 
 }
