@@ -27,16 +27,16 @@ const keyRight = 39;
 // const keyD = 68;
 // Initial update interval in milliseconds
 const initialGameInterval = 1000;
-let updateInterval = initialGameInterval;
+let updateInterval;
 // add listener for user keyboard input
 window.addEventListener('keydown', handleKeyDown);
 // Start/stop button
 const startButton = document.querySelector('.start');
-startButton.onclick = startGame;
+// startButton.onclick = startGame;
 // Reset button
 const resetButton = document.querySelector('.reset');
-resetButton.style.visibility = 'hidden';
-resetButton.onclick = resetGame;
+// resetButton.style.visibility = 'hidden';
+// resetButton.onclick = resetGame;
 // The game object
 let game = {
   theShape: new TShape(),
@@ -58,10 +58,10 @@ let game = {
       },
       execute: function() {
         console.log('in initiating.execute()');
-        initiateGame();
       },
       initiate: function() {
         console.log('already initiated');
+        initiateGame();
       },
       pause: function() {
         this.target.changeState(this.target.states.pausing);
@@ -403,9 +403,17 @@ let game = {
 
 // for stopping setInterval()
 let interval;
+game.initialize();
+game.initiate();
 
 function initiateGame() {
-  
+  game.theShape = new TShape();
+  game.landedSquares = [];
+  updateInterval = initialGameInterval;
+  startButton.onclick = game.drop();
+  resetButton.style.visibility = 'hidden';
+  resetButton.onclick = game.initiate();
+  render();
 }
 
 
