@@ -531,10 +531,11 @@ function drop() {
 }
 
 
-// Removes any full rows and then drops any square above.
+// Removes any full rows and then drops any squares above them.
 function removeFullRows() {
   for (let i = columnLength - 1; i >= 0; i--) {
     let squareCountInRow = getSquareCountInRow(i);
+    // is row full?
     if (squareCountInRow === rowLength) {
       removeSquaresInRow(i);
       // Drops squares above this row
@@ -628,21 +629,11 @@ function Square(x, y, color) {
     return !isSquareBellow && !isAtBottom;
   }
 }
-// Todo refactor to extract all this to a generic Shape object.
-function TShape() {
-  // the "T" shape's squares as they appear at top of game.
-  // In order of column, row.
-  this.squares = [
-    new Square(5, 0, 'blue'),
-    new Square(4, 1, 'blue'),
-    new Square(5, 1, 'blue'),
-    new Square(6, 1, 'blue')
-  ];
-  // a 2D array to facilitate rotation of the shape
-  this.squares2D = [[undefined, this.squares[0], undefined],
-                  [this.squares[1], this.squares[2], this.squares[3]],
-                  [undefined, undefined, undefined]];
 
+// A generic tetris tetromino shape.
+function Shape() {
+  this.squares = [];
+  this.squares2D = [[]];
   // If there is space to rotate 90 degrees, rotates this shape 
   // by rotating the contents of this.squares2D, and mutating the 
   // x and y coords of the shape's squares.                
@@ -704,6 +695,22 @@ function TShape() {
     return this.squares.every(s => s.canMoveDown());
   };
 }
+
+function TShape() {
+  Shape.call(this);
+  this.squares = [
+    new Square(5, 0, 'blue'),
+    new Square(4, 1, 'blue'),
+    new Square(5, 1, 'blue'),
+    new Square(6, 1, 'blue')
+  ];
+  this.squares2D = [[undefined, this.squares[0], undefined],
+                    [this.squares[1], this.squares[2], this.squares[3]],
+                    [undefined, undefined, undefined]];
+}
+TShape.prototype = Object.create(Shape.prototype);
+TShape.prototype.constructor = TShape;
+
 
 // return true is no squares in rotated2D share both x and y coords with
 // any landedSquare.
