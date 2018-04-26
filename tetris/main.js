@@ -516,7 +516,6 @@ function rotateCounterClockwise() {
 function drop() {
   // Adds a shape on first call
   if (!game.theShape) {
-    // game.theShape = new LxShape();
     game.theShape = getNextRandomShape();
     // is exists and possible drops shape one space
   } else if (game.theShape.isSpaceBelow()) {
@@ -531,9 +530,10 @@ function drop() {
   render();
 }
 
+// returns one of the possible 7 shapes
 function getNextRandomShape() {
-  let intInRange0to5 = Math.floor(Math.random() * 6);
-  switch (intInRange0to5) {
+  let intInRange0to6 = Math.floor(Math.random() * 7);
+  switch (intInRange0to6) {
     case 0:
     return new TShape();
     case 1:
@@ -546,6 +546,8 @@ function getNextRandomShape() {
     return new LShape();
     case 5:
     return new LxShape();
+    case 6:
+    return new IShape();
   }
 }
 
@@ -715,6 +717,59 @@ function Shape() {
   this.isSpaceBelow = function() {
     return this.squares.every(s => s.canMoveDown());
   };
+}
+
+function IShape() {
+  Shape.call(this);
+  this.squares = [
+    new Square(5, 0, 'black'),
+    new Square(5, 1, 'black'),
+    new Square(5, 2, 'black'),
+    new Square(5, 3, 'black')
+  ];
+  this.squares2D = [
+    [undefined, this.squares[0], undefined, undefined],
+    [undefined, this.squares[1], undefined, undefined],
+    [undefined, this.squares[2], undefined, undefined],
+    [undefined, this.squares[3], undefined, undefined]    
+  ];
+  // customized for a 2d array of size 4.
+  this.rotate = function(direction='clockwise') {
+    // make a deep copy to check if rotation is possible
+    let squares2DClone = JSON.parse(JSON.stringify(this.squares2D)); 
+    squares2DClone = getRotated(squares2DClone);   
+    if (isSpaceToRotate(squares2DClone)) {
+      this.squares2D = getRotated(this.squares2D);
+    }
+    // returns shape2D rotated in it's matrix, and
+    // with it's squares mutated to implement the rotation.
+    function getRotated(shape2D) {
+      // a container of the correct size.
+      let rotated = [[,,,,],[,,,,],[,,,,],[,,,,]];
+      for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+          // current square to move
+          let sq = shape2D[i][j];
+          // Mutate the squares x and y coords to rotate the entire shape
+          // Place the mutated square in corresponding place in new matrix.
+          if (direction === 'clockwise') {
+            if (sq) {
+              sq.x += 3 - j - i;
+              sq.y += j - i;
+            }
+            rotated[j][3 - i] = sq;
+          } else if (direction === 'counterClockWise') {
+            if (sq) {
+              sq.x += 0 - j + i;
+              sq.y += 3 - (j + i);
+            }
+            rotated[3 - j][0 + i] = sq;
+          }
+        }
+      }
+      return rotated;
+    }
+  } 
 }
 
 function TShape() {
