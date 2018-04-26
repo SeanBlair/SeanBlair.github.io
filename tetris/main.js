@@ -1,7 +1,7 @@
 // Canvas html element
 const canvas = document.querySelector('.canvas');
-canvas.width = 400;
-canvas.height = 400;
+canvas.width = 300;
+canvas.height = 300;
 // object to draw on.
 const ctx = canvas.getContext('2d');
 // Pixel length of one tetromino square
@@ -61,25 +61,18 @@ let game = {
         this.target.changeState(this.target.states.starting);
       },
       pause: function() {
-        this.target.changeState(this.target.states.pausing);
       },
       drop: function() {
-        this.target.changeState(this.target.states.dropping);
       },
       moveLeft: function() {
-        this.target.changeState(this.target.states.movingLeft);
       },
       moveRight: function() {
-        this.target.changeState(this.target.states.movingRight);
       },
       moveDown: function() {
-        this.target.changeState(this.target.states.movingDown);
       },
       rotateClockWise: function() {
-        this.target.changeState(this.target.states.rotatingClockWise);
       },
       rotateCounterClock: function() {
-        this.target.changeState(this.target.states.rotatingCounterClock);
       },
       exit: function() {
         console.log('in initiating.exit()');
@@ -132,26 +125,23 @@ let game = {
       initiate: function() {
         this.target.changeState(this.target.states.initiating);
       },
+      start: function() {
+        this.target.changeState(this.target.states.starting);
+      },
       pause: function() {
         console.log('already paused');
       },
       drop: function() {
-        this.target.changeState(this.target.states.dropping);
       },
       moveLeft: function() {
-        this.target.changeState(this.target.states.movingLeft);
       },
       moveRight: function() {
-        this.target.changeState(this.target.states.movingRight);
       },
       moveDown: function() {
-        this.target.changeState(this.target.states.movingDown);
       },
       rotateClockWise: function() {
-        this.target.changeState(this.target.states.rotatingClockWise);
       },
       rotateCounterClock: function() {
-        this.target.changeState(this.target.states.rotatingCounterClock);
       },
       exit: function() {
         console.log('in pausing.exit()');
@@ -451,6 +441,7 @@ initiateGame();
 
 // initiates the state for a new game.
 function initiateGame() {
+  clearInterval(interval);
   game.theShape = new OShape();
   game.landedSquares = [];
   updateInterval = initialGameInterval;
@@ -472,11 +463,11 @@ function startGame() {
 }
 
 // pauses the game by stopping the setInterval()
-// function pauseGame() {
-//   startButton.textContent = 'Continue';
-//   startButton.onclick = (() => game.drop());
-//   // clearInterval(interval);
-// }
+function pauseGame() {
+  startButton.textContent = 'Continue';
+  startButton.onclick = (() => game.start());
+  clearInterval(interval);
+}
 
 // if space on left, moves shape left one space and renders the game;
 function moveLeft() {
