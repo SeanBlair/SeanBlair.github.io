@@ -45,6 +45,8 @@ const linesLabel = document.querySelector('.lines');
 let lineCount;
 // For storing current level.
 let currentLevel;
+// For storing previous shape id.
+let previousRandomId;
 // The game object
 let game = {
   theShape: undefined,
@@ -571,6 +573,7 @@ function initiateGame() {
   clearInterval(interval);
   lineCount = 0;
   currentLevel = 0;
+  previousRandomId = 7;
   levelLabel.textContent = `Level: ${ currentLevel }`;
   linesLabel.textContent = `Total Lines: ${ lineCount }`;
   game.theShape = undefined;
@@ -656,15 +659,25 @@ function drop() {
   render();
 }
 
-// returns one of the possible 7 shapes
-// TODO implement random algo documented:
-// 1) Pick a (pseudo)random number from 0-7, representing the 7 possible pieces and one "dummy number" (7). 
-// If it comes up as 7 or the same number as the previous piece, go to step 2. 
-// Otherwise, give the piece represented by the chosen number.
-// 2) Pick a (pseudo)random number from 0-6, and give the piece represented by the number.
+// Returns one of the possible 7 shapes. If the first random shape chosen is
+// not equal to the previous game shape, it is returned. Otherwise, a second
+// random shape is chosen and returned regardless if equal to previous. 
 function getNextRandomShape() {
+  // random number from 0 - 6
   let intInRange0to6 = Math.floor(Math.random() * 7);
-  switch (intInRange0to6) {
+  // if same as last shape
+  if (intInRange0to6 === previousRandomId) {
+    // Pick a new random number
+    intInRange0to6 = Math.floor(Math.random() * 7);
+  }
+  previousRandomId = intInRange0to6;
+  return getShapeWithID(intInRange0to6);
+}
+
+// returns one of 7 shapes.
+// id = [0...6]
+function getShapeWithID(id) {
+  switch (id) {
     case 0:
     return new TShape();
     case 1:
@@ -682,6 +695,7 @@ function getNextRandomShape() {
   }
 }
 
+// Speeds up the game on level change
 function speedUp() {
   adjustDropInterval();
   clearInterval(interval);
@@ -925,9 +939,6 @@ function Shape() {
   };
 }
 
-
-// TODO: make all shapes start as documented at:
-// http://tetris.wikia.com/wiki/Tetris_Guideline
 function IShape() {
   Shape.call(this);
   this.squares = [
