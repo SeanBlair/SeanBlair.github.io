@@ -49,20 +49,17 @@ let currentLevel;
 let previousRandomId;
 // The game object
 let game = {
+  // the current tetromino.
   theShape: undefined,
+  // the squares of landed shapes.
   landedSquares: [],
   state: undefined,
-  // initiating, starting, pausing, dropping, moving left,
-  // moving right, moving down, rotating clockwise,
-  // rotating counter clockwise. 
-  // TODO  implement game over state.
+  // Uses the State pattern to share state with arbitrary
+  // user input and the periodic game update interval.
   states: {
     initiating: {
       initialize: function(target) {
         this.target = target;
-      },
-      enter: function() {
-        console.log('in initiating.enter()');
       },
       execute: function() {
         console.log('in initiating.execute()');
@@ -87,17 +84,11 @@ let game = {
       rotateClockWise: function() {
       },
       rotateCounterClock: function() {
-      },
-      exit: function() {
-        console.log('in initiating.exit()');
       }
     },
     starting: {
       initialize: function(target) {
         this.target = target;
-      },
-      enter: function() {
-        console.log('in starting.enter()');
       },
       execute: function() {
         console.log('in starting.execute()')
@@ -123,17 +114,11 @@ let game = {
       },
       speedUp: function() {
         this.target.changeState(this.target.states.speedingUp);
-      },
-      exit: function() {
-        console.log('in starting.exit()');
       }
     },
     pausing: {
       initialize: function(target) {
         this.target = target;
-      },
-      enter: function() {
-        console.log('in pausing.enter()');
       },
       execute: function() {
         console.log('in pausing.execute()');
@@ -159,17 +144,11 @@ let game = {
       rotateClockWise: function() {
       },
       rotateCounterClock: function() {
-      },
-      exit: function() {
-        console.log('in pausing.exit()');
       }
     },
     dropping: {
       initialize: function(target) {
         this.target = target;
-      },
-      enter: function() {
-        console.log('in dropping.enter()');
       },
       execute: function() {
         console.log('in dropping.execute()');
@@ -202,17 +181,11 @@ let game = {
       },
       speedUp: function() {
         this.target.changeState(this.target.states.speedingUp);
-      },
-      exit: function() {
-        console.log('in dropping.exit()');
       }
     },
     movingLeft: {
       initialize: function(target) {
         this.target = target;
-      },
-      enter: function() {
-        console.log('in movingLeft.enter()');
       },
       execute: function() {
         console.log('in movingLeft.execute()');
@@ -245,17 +218,11 @@ let game = {
       },
       speedUp: function() {
         this.target.changeState(this.target.states.speedingUp);
-      },
-      exit: function() {
-        console.log('in movingLeft.exit()');
       }
     },
     movingRight: {
       initialize: function(target) {
         this.target = target;
-      },
-      enter: function() {
-        console.log('in movingRight.enter()');
       },
       execute: function() {
         console.log('in movingRight.execute()');
@@ -288,17 +255,11 @@ let game = {
       },
       speedUp: function() {
         this.target.changeState(this.target.states.speedingUp);
-      },
-      exit: function() {
-        console.log('in movingLeft.exit()');
       }
     },
     movingDown: {
       initialize: function(target) {
         this.target = target;
-      },
-      enter: function() {
-        console.log('in movingDown.enter()');
       },
       execute: function() {
         console.log('in movingDown.execute()');
@@ -331,17 +292,11 @@ let game = {
       },
       speedUp: function() {
         this.target.changeState(this.target.states.speedingUp);
-      },
-      exit: function() {
-        console.log('in movingDown.exit()');
       }
     },
     rotatingClockWise: {
       initialize: function(target) {
         this.target = target;
-      },
-      enter: function() {
-        console.log('in rotatingClockwise.enter()');
       },
       execute: function() {
         console.log('in rotatingClockwise.execute()');
@@ -374,17 +329,11 @@ let game = {
       },
       speedUp: function() {
         this.target.changeState(this.target.states.speedingUp);
-      },
-      exit: function() {
-        console.log('in rotatingClockwise.exit()');
       }
     },
     rotatingCounterClock: {
       initialize: function(target) {
         this.target = target;
-      },
-      enter: function() {
-        console.log('in rotatingCounterClock.enter()');
       },
       execute: function() {
         console.log('in rotatingCounterClock.execute()');
@@ -417,17 +366,11 @@ let game = {
       },
       speedUp: function() {
         this.target.changeState(this.target.states.speedingUp);
-      },
-      exit: function() {
-        console.log('in rotatingCounterClock.exit()');
       }
     },
     rotatingCounterClock: {
       initialize: function(target) {
         this.target = target;
-      },
-      enter: function() {
-        console.log('in rotatingCounterClock.enter()');
       },
       execute: function() {
         console.log('in rotatingCounterClock.execute()');
@@ -460,17 +403,11 @@ let game = {
       },
       speedUp: function() {
         this.target.changeState(this.target.states.speedingUp);
-      },
-      exit: function() {
-        console.log('in rotatingCounterClock.exit()');
       }
     },
     speedingUp: {
       initialize: function(target) {
         this.target = target;
-      },
-      enter: function() {
-        console.log('in speedingUp.enter()');
       },
       execute: function() {
         console.log('in speedingUp.execute()');
@@ -502,9 +439,6 @@ let game = {
       },
       speedUp: function() {
         console.log('already speeding up');
-      },
-      exit: function() {
-        console.log('in speedingUp.exit()');
       }
     }
   },
@@ -553,9 +487,7 @@ let game = {
   },
   changeState: function(state) {
     if (this.state !== state) {
-      this.state.exit();
       this.state = state;
-      this.state.enter();
       this.state.execute();
     }
   }
