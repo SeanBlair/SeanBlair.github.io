@@ -1,6 +1,14 @@
 body {
-  background-color: black;
+  background-color: #1a1a1a;
   color: white;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 0px;
+}
+nav {
+  margin-top: 0px;
 }
 
 .game {
@@ -8,7 +16,6 @@ body {
   text-align: center;
 }
 
-.start {
-  margin-left: 10%;
+.controls {
+  margin-top: 1%;
 }
-

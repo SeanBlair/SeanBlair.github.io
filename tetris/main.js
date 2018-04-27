@@ -581,7 +581,8 @@ function initiateGame() {
   dropInterval = initialGameInterval;
   startButton.textContent = 'Start';
   startButton.onclick = (() => game.start());
-  resetButton.style.visibility = 'hidden';
+  // resetButton.style.visibility = 'hidden';
+  resetButton.style.display = 'none';
   resetButton.onclick = (() => game.initiate());
   render();
 }
@@ -591,7 +592,8 @@ function initiateGame() {
 function startGame() {
   startButton.textContent = 'Pause';
   startButton.onclick = (() => game.pause());
-  resetButton.style.visibility = 'visible';
+  // resetButton.style.visibility = 'visible';
+  resetButton.style.display = 'inline';
   interval = setInterval(() => game.drop(), dropInterval);
   render();
 }
@@ -655,8 +657,32 @@ function drop() {
     removeFullRows();
     // adds new shape to game
     game.theShape = getNextRandomShape();
+    if (isGameOver()) {
+      // show last shape
+      render();
+      endGame();
+      return;
+    }
   }
   render();
+}
+
+// Returns true is a new shape is either overlapping
+// or is blocked from moving down.
+function isGameOver() {
+  let isShapeOverlapping = game.theShape.squares.forEach(
+    sq => game.landedSquares.some(s => s.x === sq.x && s.y === sq.y)
+  );
+  return isShapeOverlapping || !game.theShape.isSpaceBelow();
+}
+
+// Stops the game showing a Game Over! notification.
+function endGame() {
+  clearInterval(interval);
+  ctx.font = '48px serif';
+  ctx.fillStyle = 'black'
+  ctx.fillText('Game', 16, 100);
+  ctx.fillText('Over!', 16, 200);
 }
 
 // Returns one of the possible 7 shapes. If the first random shape chosen is
@@ -995,10 +1021,10 @@ function IShape() {
 function TShape() {
   Shape.call(this);
   this.squares = [
-    new Square(4, -1, 'purple'),
-    new Square(3, 0, 'purple'),
-    new Square(4, 0, 'purple'),
-    new Square(5, 0, 'purple')
+    new Square(4, -1, '#b300b3'),
+    new Square(3, 0, '#b300b3'),
+    new Square(4, 0, '#b300b3'),
+    new Square(5, 0, '#b300b3')
   ];
   this.squares2D = [
     [undefined, this.squares[0], undefined],
@@ -1012,10 +1038,10 @@ TShape.prototype.constructor = TShape;
 function SShape() {
   Shape.call(this);
   this.squares = [
-    new Square(4, -1, 'green'),
-    new Square(5, -1, 'green'),
-    new Square(3, 0, 'green'),
-    new Square(4, 0, 'green')
+    new Square(4, -1, '#00b300'),
+    new Square(5, -1, '#00b300'),
+    new Square(3, 0, '#00b300'),
+    new Square(4, 0, '#00b300')
   ];
   this.squares2D = [
     [undefined, this.squares[0],  this.squares[1]],
@@ -1029,10 +1055,10 @@ SShape.prototype.constructor = SShape;
 function ZShape() {
   Shape.call(this);
   this.squares = [
-    new Square(3, -1, 'red'),
-    new Square(4, -1, 'red'),
-    new Square(4, 0, 'red'),
-    new Square(5, 0, 'red')
+    new Square(3, -1, '#ff6666'),
+    new Square(4, -1, '#ff6666'),
+    new Square(4, 0, '#ff6666'),
+    new Square(5, 0, '#ff6666')
   ];
   this.squares2D = [
     [this.squares[0], this.squares[1], undefined],
@@ -1064,10 +1090,10 @@ LShape.prototype.constructor = LShape;
 function JShape() {
   Shape.call(this);
   this.squares = [
-    new Square(3, -1, 'blue'),
-    new Square(3, 0, 'blue'),
-    new Square(4, 0, 'blue'),
-    new Square(5, 0, 'blue')
+    new Square(3, -1, '#6666ff'),
+    new Square(3, 0, '#6666ff'),
+    new Square(4, 0, '#6666ff'),
+    new Square(5, 0, '#6666ff')
   ];
   this.squares2D = [
     [this.squares[0], undefined, undefined],
