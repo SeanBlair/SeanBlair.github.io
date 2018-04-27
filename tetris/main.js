@@ -22,11 +22,11 @@ const width = squareSize * rowLength;
 // game height in pixels
 const height = squareSize * columnLength;
 // Keyboard ids
-const keyLeft = 37;
-const keyDowsn = 40;
-const keyRight = 39;
-const keyF = 70;
 const keyD = 68;
+const keyF = 70;
+const keyJ = 74;
+const keyK = 75;
+const keyL = 76;
 // Initial update interval in milliseconds
 const initialGameInterval = 800;
 // current drop interval
@@ -931,16 +931,16 @@ function Shape() {
 function IShape() {
   Shape.call(this);
   this.squares = [
+    new Square(3, 0, 'cyan'),
+    new Square(4, 0, 'cyan'),
     new Square(5, 0, 'cyan'),
-    new Square(5, 1, 'cyan'),
-    new Square(5, 2, 'cyan'),
-    new Square(5, 3, 'cyan')
+    new Square(6, 0, 'cyan')
   ];
   this.squares2D = [
-    [undefined, this.squares[0], undefined, undefined],
-    [undefined, this.squares[1], undefined, undefined],
-    [undefined, this.squares[2], undefined, undefined],
-    [undefined, this.squares[3], undefined, undefined]    
+    [undefined, undefined, undefined, undefined],
+    [undefined, undefined, undefined, undefined],
+    [this.squares[0], this.squares[1], this.squares[2], this.squares[3]],
+    [undefined, undefined, undefined, undefined]    
   ];
   // customized for a 2d array of size 4.
   this.rotate = function(direction='clockwise') {
@@ -984,10 +984,10 @@ function IShape() {
 function TShape() {
   Shape.call(this);
   this.squares = [
-    new Square(5, 0, 'purple'),
-    new Square(4, 1, 'purple'),
-    new Square(5, 1, 'purple'),
-    new Square(6, 1, 'purple')
+    new Square(4, -1, 'purple'),
+    new Square(3, 0, 'purple'),
+    new Square(4, 0, 'purple'),
+    new Square(5, 0, 'purple')
   ];
   this.squares2D = [
     [undefined, this.squares[0], undefined],
@@ -1001,15 +1001,15 @@ TShape.prototype.constructor = TShape;
 function SShape() {
   Shape.call(this);
   this.squares = [
-    new Square(4, 0, 'green'),
-    new Square(4, 1, 'green'),
-    new Square(5, 1, 'green'),
-    new Square(5, 2, 'green')
+    new Square(4, -1, 'green'),
+    new Square(5, -1, 'green'),
+    new Square(3, 0, 'green'),
+    new Square(4, 0, 'green')
   ];
   this.squares2D = [
-    [this.squares[0], undefined, undefined],
-    [this.squares[1], this.squares[2], undefined],
-    [undefined, this.squares[3], undefined]
+    [undefined, this.squares[0],  this.squares[1]],
+    [this.squares[2], this.squares[3], undefined],
+    [undefined, undefined, undefined]
   ];
 }
 SShape.prototype = Object.create(Shape.prototype);
@@ -1018,34 +1018,32 @@ SShape.prototype.constructor = SShape;
 function ZShape() {
   Shape.call(this);
   this.squares = [
-    new Square(5, 0, 'red'),
-    new Square(4, 1, 'red'),
-    new Square(5, 1, 'red'),
-    new Square(4, 2, 'red')
+    new Square(3, -1, 'red'),
+    new Square(4, -1, 'red'),
+    new Square(4, 0, 'red'),
+    new Square(5, 0, 'red')
   ];
   this.squares2D = [
-    [undefined, this.squares[0], undefined],
-    [this.squares[1], this.squares[2], undefined],
-    [this.squares[3], undefined, undefined]
+    [this.squares[0], this.squares[1], undefined],
+    [undefined, this.squares[2], this.squares[3]],
+    [undefined, undefined, undefined]
   ];
 }
 ZShape.prototype = Object.create(Shape.prototype);
 ZShape.prototype.constructor = ZShape;
 
-
-
 function LShape() {
   Shape.call(this);
   this.squares = [
-    new Square(5, 0, 'orange'),
-    new Square(5, 1, 'orange'),
-    new Square(5, 2, 'orange'),
-    new Square(6, 2, 'orange')
+    new Square(5, -1, 'orange'),
+    new Square(3, 0, 'orange'),
+    new Square(4, 0, 'orange'),
+    new Square(5, 0, 'orange')
   ];
   this.squares2D = [
-    [undefined, this.squares[0], undefined],
-    [undefined, this.squares[1], undefined],
-    [undefined, this.squares[2], this.squares[3]]
+    [undefined, undefined, this.squares[0]],
+    [this.squares[1], this.squares[2], this.squares[3]],
+    [undefined, undefined, undefined]
   ];
 }
 LShape.prototype = Object.create(Shape.prototype);
@@ -1055,15 +1053,15 @@ LShape.prototype.constructor = LShape;
 function JShape() {
   Shape.call(this);
   this.squares = [
-    new Square(5, 0, 'blue'),
-    new Square(5, 1, 'blue'),
-    new Square(4, 2, 'blue'),
-    new Square(5, 2, 'blue')
+    new Square(3, -1, 'blue'),
+    new Square(3, 0, 'blue'),
+    new Square(4, 0, 'blue'),
+    new Square(5, 0, 'blue')
   ];
   this.squares2D = [
-    [undefined, this.squares[0], undefined],
-    [undefined, this.squares[1], undefined],
-    [this.squares[2], this.squares[3], undefined]
+    [this.squares[0], undefined, undefined],
+    [this.squares[1], this.squares[2], this.squares[3]],
+    [undefined, undefined, undefined]
   ];
 }
 JShape.prototype = Object.create(Shape.prototype);
@@ -1073,10 +1071,10 @@ JShape.prototype.constructor = JShape;
 function OShape() {
   Shape.call(this);
   this.squares = [
+    new Square(4, -1, 'yellow'),
+    new Square(5, -1, 'yellow'),
     new Square(4, 0, 'yellow'),
-    new Square(5, 0, 'yellow'),
-    new Square(4, 1, 'yellow'),
-    new Square(5, 1, 'yellow')
+    new Square(5, 0, 'yellow')
   ];
   // no need for 2D matrix as rotation is ignored.
   // rotation does not change this shape
@@ -1102,13 +1100,13 @@ function isSpaceToRotate(rotated2D) {
 // User input handler
 function handleKeyDown(e) {
   switch (e.keyCode) {
-    case keyLeft:
+    case keyJ:
     game.moveLeft();
     break;
-    case keyDowsn:
+    case keyK:
     game.moveDown();
     break;
-    case keyRight:
+    case keyL:
     game.moveRight();
     break;
     case keyF:
