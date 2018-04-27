@@ -56,17 +56,16 @@ let game = {
   state: undefined,
   // Uses the State pattern to share state with arbitrary
   // user input and the periodic game update interval.
+  // TODO: refactor repeated functionality
   states: {
     initiating: {
       initialize: function(target) {
         this.target = target;
       },
       execute: function() {
-        console.log('in initiating.execute()');
         initiateGame();
       },
       initiate: function() {
-        console.log('already initiated');
       },
       start: function() {
         this.target.changeState(this.target.states.starting);
@@ -91,14 +90,12 @@ let game = {
         this.target = target;
       },
       execute: function() {
-        console.log('in starting.execute()')
         startGame();
       },
       initiate: function() {
         this.target.changeState(this.target.states.initiating);
       },
       start: function() {
-        console.log('already in starting')
       },
       drop: function() {
         this.target.changeState(this.target.states.dropping);
@@ -121,7 +118,6 @@ let game = {
         this.target = target;
       },
       execute: function() {
-        console.log('in pausing.execute()');
         pauseGame();
       },
       initiate: function() {
@@ -131,7 +127,6 @@ let game = {
         this.target.changeState(this.target.states.starting);
       },
       pause: function() {
-        console.log('already paused');
       },
       drop: function() {
       },
@@ -151,7 +146,6 @@ let game = {
         this.target = target;
       },
       execute: function() {
-        console.log('in dropping.execute()');
         drop();
       },
       initiate: function() {
@@ -161,7 +155,6 @@ let game = {
         this.target.changeState(this.target.states.pausing);
       },
       drop: function() {
-        console.log('already dropping');
         drop();
       },
       moveLeft: function() {
@@ -188,7 +181,6 @@ let game = {
         this.target = target;
       },
       execute: function() {
-        console.log('in movingLeft.execute()');
         moveLeft();
       },
       initiate: function() {
@@ -201,7 +193,6 @@ let game = {
         this.target.changeState(this.target.states.dropping);
       },
       moveLeft: function() {
-        console.log('already moving left');
         moveLeft();
       },
       moveRight: function() {
@@ -225,7 +216,6 @@ let game = {
         this.target = target;
       },
       execute: function() {
-        console.log('in movingRight.execute()');
         moveRight();
       },
       initiate: function() {
@@ -241,7 +231,6 @@ let game = {
         this.target.changeState(this.target.states.movingLeft);
       },
       moveRight: function() {
-        console.log('already moving right');
         moveRight();
       },
       moveDown: function() {
@@ -262,7 +251,6 @@ let game = {
         this.target = target;
       },
       execute: function() {
-        console.log('in movingDown.execute()');
         moveDown();
       },
       initiate: function() {
@@ -281,7 +269,6 @@ let game = {
         this.target.changeState(this.target.states.movingRight);
       },
       moveDown: function() {
-        console.log('already moving down');
         moveDown();
       },
       rotateClockWise: function() {
@@ -299,7 +286,6 @@ let game = {
         this.target = target;
       },
       execute: function() {
-        console.log('in rotatingClockwise.execute()');
         rotateClockWise();
       },
       initiate: function() {
@@ -321,7 +307,6 @@ let game = {
         this.target.changeState(this.target.states.movingDown);
       },
       rotateClockWise: function() {
-        console.log('already rotating clockwise');
         rotateClockWise();
       },
       rotateCounterClock: function() {
@@ -336,7 +321,6 @@ let game = {
         this.target = target;
       },
       execute: function() {
-        console.log('in rotatingCounterClock.execute()');
         rotateCounterClockwise();
       },
       initiate: function() {
@@ -361,7 +345,6 @@ let game = {
         this.target.changeState(this.target.states.rotatingClockWise);
       },
       rotateCounterClock: function() {
-        console.log('already rotating counter clockwise');
         rotateCounterClockwise();
       },
       speedUp: function() {
@@ -373,7 +356,6 @@ let game = {
         this.target = target;
       },
       execute: function() {
-        console.log('in rotatingCounterClock.execute()');
         rotateCounterClockwise();
       },
       initiate: function() {
@@ -398,7 +380,6 @@ let game = {
         this.target.changeState(this.target.states.rotatingClockWise);
       },
       rotateCounterClock: function() {
-        console.log('already rotating counter clockwise');
         rotateCounterClockwise();
       },
       speedUp: function() {
@@ -410,7 +391,6 @@ let game = {
         this.target = target;
       },
       execute: function() {
-        console.log('in speedingUp.execute()');
         speedUp();
       },
       initiate: function() {
@@ -438,7 +418,6 @@ let game = {
         this.target.changeState(this.target.states.rotatingCounterClock);
       },
       speedUp: function() {
-        console.log('already speeding up');
       }
     }
   },
