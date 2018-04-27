@@ -1,3 +1,5 @@
+// TODO: Break file into smaller files.
+
 // Canvas html element
 const canvas = document.querySelector('.canvas');
 canvas.width = 150;
@@ -27,7 +29,8 @@ const keyF = 70;
 const keyD = 68;
 // Initial update interval in milliseconds
 const initialGameInterval = 800;
-let updateInterval;
+// current drop interval
+let dropInterval;
 // add listener for user keyboard input
 window.addEventListener('keydown', handleKeyDown);
 // Start/stop button
@@ -40,6 +43,8 @@ const levelLabel = document.querySelector('.level');
 const linesLabel = document.querySelector('.lines');
 // For storing lines finished.
 let lineCount;
+// For storing current level.
+let currentLevel;
 // The game object
 let game = {
   theShape: undefined,
@@ -48,6 +53,7 @@ let game = {
   // initiating, starting, pausing, dropping, moving left,
   // moving right, moving down, rotating clockwise,
   // rotating counter clockwise. 
+  // TODO  implement game over state.
   states: {
     initiating: {
       initialize: function(target) {
@@ -112,6 +118,9 @@ let game = {
       },
       moveDown: function() {
         this.target.changeState(this.target.states.movingDown);
+      },
+      speedUp: function() {
+        this.target.changeState(this.target.states.speedingUp);
       },
       exit: function() {
         console.log('in starting.exit()');
@@ -189,6 +198,9 @@ let game = {
       rotateCounterClock: function() {
         this.target.changeState(this.target.states.rotatingCounterClock);
       },
+      speedUp: function() {
+        this.target.changeState(this.target.states.speedingUp);
+      },
       exit: function() {
         console.log('in dropping.exit()');
       }
@@ -228,6 +240,9 @@ let game = {
       },
       rotateCounterClock: function() {
         this.target.changeState(this.target.states.rotatingCounterClock);
+      },
+      speedUp: function() {
+        this.target.changeState(this.target.states.speedingUp);
       },
       exit: function() {
         console.log('in movingLeft.exit()');
@@ -269,6 +284,9 @@ let game = {
       rotateCounterClock: function() {
         this.target.changeState(this.target.states.rotatingCounterClock);
       },
+      speedUp: function() {
+        this.target.changeState(this.target.states.speedingUp);
+      },
       exit: function() {
         console.log('in movingLeft.exit()');
       }
@@ -308,6 +326,9 @@ let game = {
       },
       rotateCounterClock: function() {
         this.target.changeState(this.target.states.rotatingCounterClock);
+      },
+      speedUp: function() {
+        this.target.changeState(this.target.states.speedingUp);
       },
       exit: function() {
         console.log('in movingDown.exit()');
@@ -349,6 +370,9 @@ let game = {
       rotateCounterClock: function() {
         this.target.changeState(this.target.states.rotatingCounterClock);
       },
+      speedUp: function() {
+        this.target.changeState(this.target.states.speedingUp);
+      },
       exit: function() {
         console.log('in rotatingClockwise.exit()');
       }
@@ -389,8 +413,96 @@ let game = {
         console.log('already rotating counter clockwise');
         rotateCounterClockwise();
       },
+      speedUp: function() {
+        this.target.changeState(this.target.states.speedingUp);
+      },
       exit: function() {
         console.log('in rotatingCounterClock.exit()');
+      }
+    },
+    rotatingCounterClock: {
+      initialize: function(target) {
+        this.target = target;
+      },
+      enter: function() {
+        console.log('in rotatingCounterClock.enter()');
+      },
+      execute: function() {
+        console.log('in rotatingCounterClock.execute()');
+        rotateCounterClockwise();
+      },
+      initiate: function() {
+        this.target.changeState(this.target.states.initiating);
+      },
+      pause: function() {
+        this.target.changeState(this.target.states.pausing);
+      },
+      drop: function() {
+        this.target.changeState(this.target.states.dropping);
+      },
+      moveLeft: function() {
+        this.target.changeState(this.target.states.movingLeft);
+      },
+      moveRight: function() {
+        this.target.changeState(this.target.states.movingRight);
+      },
+      moveDown: function() {
+        this.target.changeState(this.target.states.movingDown);
+      },
+      rotateClockWise: function() {
+        this.target.changeState(this.target.states.rotatingClockWise);
+      },
+      rotateCounterClock: function() {
+        console.log('already rotating counter clockwise');
+        rotateCounterClockwise();
+      },
+      speedUp: function() {
+        this.target.changeState(this.target.states.speedingUp);
+      },
+      exit: function() {
+        console.log('in rotatingCounterClock.exit()');
+      }
+    },
+    speedingUp: {
+      initialize: function(target) {
+        this.target = target;
+      },
+      enter: function() {
+        console.log('in speedingUp.enter()');
+      },
+      execute: function() {
+        console.log('in speedingUp.execute()');
+        speedUp();
+      },
+      initiate: function() {
+        this.target.changeState(this.target.states.initiating);
+      },
+      pause: function() {
+        this.target.changeState(this.target.states.pausing);
+      },
+      drop: function() {
+        this.target.changeState(this.target.states.dropping);
+      },
+      moveLeft: function() {
+        this.target.changeState(this.target.states.movingLeft);
+      },
+      moveRight: function() {
+        this.target.changeState(this.target.states.movingRight);
+      },
+      moveDown: function() {
+        this.target.changeState(this.target.states.movingDown);
+      },
+      rotateClockWise: function() {
+        this.target.changeState(this.target.states.rotatingClockWise);
+      },
+      rotateCounterClock: function() {
+        this.target.changeState(this.target.states.rotatingCounterClock);
+      },
+      speedUp: function() {
+        console.log('already speeding up');
+      },
+      exit: function() {
+        console.log('in speedingUp.exit()');
       }
     }
   },
@@ -404,6 +516,7 @@ let game = {
     this.states.movingDown.initialize(this);
     this.states.rotatingClockWise.initialize(this);
     this.states.rotatingCounterClock.initialize(this);
+    this.states.speedingUp.initialize(this);
     this.state = this.states.initiating;
   },
   initiate: function() {
@@ -433,6 +546,9 @@ let game = {
   rotateCounterClock: function() {
     this.state.rotateCounterClock();
   },
+  speedUp: function() {
+    this.state.speedUp();
+  },
   changeState: function(state) {
     if (this.state !== state) {
       this.state.exit();
@@ -454,11 +570,12 @@ initiateGame();
 function initiateGame() {
   clearInterval(interval);
   lineCount = 0;
-  levelLabel.textContent = `Level: ${ Math.floor(lineCount / 10) + 1}`;
-  linesLabel.textContent = `Total Lines: ${lineCount}`;
+  currentLevel = 0;
+  levelLabel.textContent = `Level: ${ currentLevel }`;
+  linesLabel.textContent = `Total Lines: ${ lineCount }`;
   game.theShape = undefined;
   game.landedSquares = [];
-  updateInterval = initialGameInterval;
+  dropInterval = initialGameInterval;
   startButton.textContent = 'Start';
   startButton.onclick = (() => game.start());
   resetButton.style.visibility = 'hidden';
@@ -472,7 +589,7 @@ function startGame() {
   startButton.textContent = 'Pause';
   startButton.onclick = (() => game.pause());
   resetButton.style.visibility = 'visible';
-  interval = setInterval(() => game.drop(), updateInterval);
+  interval = setInterval(() => game.drop(), dropInterval);
   render();
 }
 
@@ -540,6 +657,11 @@ function drop() {
 }
 
 // returns one of the possible 7 shapes
+// TODO implement random algo documented:
+// 1) Pick a (pseudo)random number from 0-7, representing the 7 possible pieces and one "dummy number" (7). 
+// If it comes up as 7 or the same number as the previous piece, go to step 2. 
+// Otherwise, give the piece represented by the chosen number.
+// 2) Pick a (pseudo)random number from 0-6, and give the piece represented by the number.
 function getNextRandomShape() {
   let intInRange0to6 = Math.floor(Math.random() * 7);
   switch (intInRange0to6) {
@@ -560,6 +682,11 @@ function getNextRandomShape() {
   }
 }
 
+function speedUp() {
+  adjustDropInterval();
+  clearInterval(interval);
+  interval = setInterval(() => game.drop(), dropInterval);
+}
 
 // Removes any full rows and then drops any squares above them.
 function removeFullRows() {
@@ -567,9 +694,16 @@ function removeFullRows() {
     let squareCountInRow = getSquareCountInRow(i);
     // is row full?
     if (squareCountInRow === rowLength) {
+      let level;
       lineCount++;
+      level = Math.floor(lineCount / 10);
+      // Has the level increased?
+      if (level > currentLevel) {
+        currentLevel = level;
+        levelLabel.textContent = `Level: ${ level }`;
+        game.speedUp();
+      }
       linesLabel.textContent = `Total Lines: ${lineCount}`;
-      levelLabel.textContent = `Level: ${ Math.floor(lineCount / 10) + 1}`;
       removeSquaresInRow(i);
       // Drops squares above this row
       game.landedSquares.forEach(s => { if (s.y < i) s.y++});
@@ -577,6 +711,59 @@ function removeFullRows() {
       removeFullRows();
       break;
     }
+  }
+}
+
+// sets dropInterval to official values
+function adjustDropInterval() {
+  switch (currentLevel) {
+    case 0:
+    dropInterval = 800;
+    break;
+    case 1:
+    dropInterval = 720;
+    break;
+    case 2:
+    dropInterval = 630;
+    break;
+    case 3:
+    dropInterval = 550;
+    break;
+    case 4:
+    dropInterval = 470;
+    break;
+    case 5:
+    dropInterval = 380;
+    break;
+    case 6:
+    dropInterval = 300;
+    break;
+    case 7:
+    dropInterval = 220;
+    break;
+    case 8:
+    dropInterval = 130;
+    break;
+    case 9:
+    dropInterval = 100;
+    break;
+    case 10:
+    case 11:
+    case 12:
+    dropInterval = 80;
+    break;
+    case 13:
+    case 14:
+    case 15:
+    dropInterval = 70;
+    break;
+    case 16:
+    case 17:
+    case 18:
+    dropInterval = 50;
+    break;
+    default:
+    dropInterval = 30;
   }
 }
 
@@ -738,6 +925,9 @@ function Shape() {
   };
 }
 
+
+// TODO: make all shapes start as documented at:
+// http://tetris.wikia.com/wiki/Tetris_Guideline
 function IShape() {
   Shape.call(this);
   this.squares = [
