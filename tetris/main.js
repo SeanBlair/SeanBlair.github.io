@@ -1,20 +1,20 @@
 // Canvas html element
 const canvas = document.querySelector('.canvas');
-canvas.width = 300;
+canvas.width = 150;
 canvas.height = 300;
 // object to draw on.
 const ctx = canvas.getContext('2d');
 // Pixel length of one tetromino square
-const squareSize = 10;
+const squareSize = 15;
 // Number of squares in one row
 const rowLength = 10;
 // Number of squares in one column
 const columnLength = 20;
 // game play boundaries
 // pixels from canvas's left border
-const LEFT = 20;
+const LEFT = 0;
 // pixels from canvas's top border
-const TOP = 20;
+const TOP = 0;
 // game width in pixels
 const width = squareSize * rowLength;
 // game height in pixels
@@ -34,6 +34,12 @@ window.addEventListener('keydown', handleKeyDown);
 const startButton = document.querySelector('.start');
 // Reset button
 const resetButton = document.querySelector('.reset');
+// For displaying current game level
+const levelLabel = document.querySelector('.level');
+// For displaying current line count
+const linesLabel = document.querySelector('.lines');
+// For storing lines finished.
+let lineCount;
 // The game object
 let game = {
   theShape: undefined,
@@ -447,6 +453,9 @@ initiateGame();
 // initiates the state for a new game.
 function initiateGame() {
   clearInterval(interval);
+  lineCount = 0;
+  levelLabel.textContent = `Level: ${ Math.floor(lineCount / 10) + 1}`;
+  linesLabel.textContent = `Total Lines: ${lineCount}`;
   game.theShape = undefined;
   game.landedSquares = [];
   updateInterval = initialGameInterval;
@@ -558,6 +567,9 @@ function removeFullRows() {
     let squareCountInRow = getSquareCountInRow(i);
     // is row full?
     if (squareCountInRow === rowLength) {
+      lineCount++;
+      linesLabel.textContent = `Total Lines: ${lineCount}`;
+      levelLabel.textContent = `Level: ${ Math.floor(lineCount / 10) + 1}`;
       removeSquaresInRow(i);
       // Drops squares above this row
       game.landedSquares.forEach(s => { if (s.y < i) s.y++});
