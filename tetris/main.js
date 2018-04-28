@@ -47,6 +47,152 @@ let lineCount;
 let currentLevel;
 // For storing previous shape id.
 let previousRandomId;
+
+
+  // Generic state object has all generic methods, allowing
+  // all the concrete states objects to override only the
+  // methods that they need to customize and inherit the rest.
+const genericState = {
+  initialize: function(target) {
+    this.target = target;
+  },
+  execute: function() {
+    console.log('in genericState.execute()');
+  },
+  initiate: function() {
+    this.target.changeState(this.target.states.initiating);
+  },
+  start: function() {
+    this.target.changeState(this.target.states.starting);    
+  },
+  pause: function() {
+    this.target.changeState(this.target.states.pausing);
+  },
+  drop: function() {
+    this.target.changeState(this.target.states.dropping);    
+  },
+  moveLeft: function() {
+    this.target.changeState(this.target.states.movingLeft);
+  },
+  moveRight: function() {
+    this.target.changeState(this.target.states.movingRight);
+  },
+  moveDown: function() {
+    this.target.changeState(this.target.states.movingDown);
+  },
+  rotateClockWise: function() {
+    this.target.changeState(this.target.states.rotatingClockWise);
+  },
+  rotateCounterClock: function() {
+    this.target.changeState(this.target.states.rotatingCounterClock);
+  },
+  speedUp: function() {
+    this.target.changeState(this.target.states.speedingUp);
+  }
+}
+
+function Initiating() {
+  // let initiating = genericState;
+  let initiating = Object.assign(genericState);
+  initiating.execute = function() {
+    initiateGame();
+  }
+  return initiating;
+}
+
+function Starting() {
+  // let starting = genericState;
+  let starting = Object.assign(genericState);
+  starting.execute = function() {
+    startGame();
+  }
+  return starting;
+}
+
+function Pausing() {
+  let pausing = genericState;
+  pausing.execute = function() {
+    pauseGame();
+  }
+  return pausing;
+}
+
+function Dropping() {
+  let dropping = genericState;
+  dropping.execute = function() {
+    drop();
+  }
+  dropping.drop = function() {
+    drop();
+  }
+  return dropping;
+}
+
+function MovingLeft() {
+  let movingLeft = genericState;
+  movingLeft.execute = function() {
+    moveLeft();
+  }
+  movingLeft.moveLeft = function() {
+    moveLeft();
+  }
+  return movingLeft;
+}
+
+function MovingRight() {
+  let movingRight = genericState;
+  movingRight.execute = function() {
+    moveRight();
+  }
+  movingRight.moveRight = function() {
+    moveRight();
+  }
+  return movingRight;
+}
+
+function MovingDown() {
+  let movingDown = genericState;
+  movingDown.execute = function() {
+    moveDown();
+  }
+  movingDown.moveRight = function() {
+    moveDown();
+  }
+  return movingDown;
+}
+
+
+function RotatingClockWise() {
+  let rotatingClockWise = genericState;
+  rotatingClockWise.execute = function() {
+    rotateClockWise();
+  }
+  rotatingClockWise.rotateClockWise = function() {
+    rotateClockWise();
+  }
+  return rotatingClockWise;
+}
+
+
+function RotatingCounterClock() {
+  let rotatingCounterClock = genericState;
+  rotatingCounterClock.execute = function() {
+    rotateCounterClockwise();
+  }
+  rotatingCounterClock.rotateCounterClock = function() {
+    rotateCounterClockwise();
+  }
+  return rotatingCounterClock;
+}
+
+function SpeedingUp() {
+  let speedingUp = genericState;
+  speedingUp.execute = function() {
+    speedUp();
+  }
+  return speedingUp;
+}
+
 // The game object
 let game = {
   // the current tetromino.
@@ -56,370 +202,379 @@ let game = {
   state: undefined,
   // Uses the State pattern to share state with arbitrary
   // user input and the periodic game update interval.
-  // TODO: refactor repeated functionality
   states: {
-    initiating: {
-      initialize: function(target) {
-        this.target = target;
-      },
-      execute: function() {
-        initiateGame();
-      },
-      initiate: function() {
-      },
-      start: function() {
-        this.target.changeState(this.target.states.starting);
-      },
-      pause: function() {
-      },
-      drop: function() {
-      },
-      moveLeft: function() {
-      },
-      moveRight: function() {
-      },
-      moveDown: function() {
-      },
-      rotateClockWise: function() {
-      },
-      rotateCounterClock: function() {
-      }
-    },
-    starting: {
-      initialize: function(target) {
-        this.target = target;
-      },
-      execute: function() {
-        startGame();
-      },
-      initiate: function() {
-        this.target.changeState(this.target.states.initiating);
-      },
-      start: function() {
-      },
-      drop: function() {
-        this.target.changeState(this.target.states.dropping);
-      },
-      moveLeft: function() {
-        this.target.changeState(this.target.states.movingLeft);
-      },
-      moveRight: function() {
-        this.target.changeState(this.target.states.movingRight);
-      },
-      moveDown: function() {
-        this.target.changeState(this.target.states.movingDown);
-      },
-      speedUp: function() {
-        this.target.changeState(this.target.states.speedingUp);
-      }
-    },
-    pausing: {
-      initialize: function(target) {
-        this.target = target;
-      },
-      execute: function() {
-        pauseGame();
-      },
-      initiate: function() {
-        this.target.changeState(this.target.states.initiating);
-      },
-      start: function() {
-        this.target.changeState(this.target.states.starting);
-      },
-      pause: function() {
-      },
-      drop: function() {
-      },
-      moveLeft: function() {
-      },
-      moveRight: function() {
-      },
-      moveDown: function() {
-      },
-      rotateClockWise: function() {
-      },
-      rotateCounterClock: function() {
-      }
-    },
-    dropping: {
-      initialize: function(target) {
-        this.target = target;
-      },
-      execute: function() {
-        drop();
-      },
-      initiate: function() {
-        this.target.changeState(this.target.states.initiating);
-      },
-      pause: function() {
-        this.target.changeState(this.target.states.pausing);
-      },
-      drop: function() {
-        drop();
-      },
-      moveLeft: function() {
-        this.target.changeState(this.target.states.movingLeft);
-      },
-      moveRight: function() {
-        this.target.changeState(this.target.states.movingRight);
-      },
-      moveDown: function() {
-        this.target.changeState(this.target.states.movingDown);
-      },
-      rotateClockWise: function() {
-        this.target.changeState(this.target.states.rotatingClockWise);
-      },
-      rotateCounterClock: function() {
-        this.target.changeState(this.target.states.rotatingCounterClock);
-      },
-      speedUp: function() {
-        this.target.changeState(this.target.states.speedingUp);
-      }
-    },
-    movingLeft: {
-      initialize: function(target) {
-        this.target = target;
-      },
-      execute: function() {
-        moveLeft();
-      },
-      initiate: function() {
-        this.target.changeState(this.target.states.initiating);
-      },
-      pause: function() {
-        this.target.changeState(this.target.states.pausing);
-      },
-      drop: function() {
-        this.target.changeState(this.target.states.dropping);
-      },
-      moveLeft: function() {
-        moveLeft();
-      },
-      moveRight: function() {
-        this.target.changeState(this.target.states.movingRight);
-      },
-      moveDown: function() {
-        this.target.changeState(this.target.states.movingDown);
-      },
-      rotateClockWise: function() {
-        this.target.changeState(this.target.states.rotatingClockWise);
-      },
-      rotateCounterClock: function() {
-        this.target.changeState(this.target.states.rotatingCounterClock);
-      },
-      speedUp: function() {
-        this.target.changeState(this.target.states.speedingUp);
-      }
-    },
-    movingRight: {
-      initialize: function(target) {
-        this.target = target;
-      },
-      execute: function() {
-        moveRight();
-      },
-      initiate: function() {
-        this.target.changeState(this.target.states.initiating);
-      },
-      pause: function() {
-        this.target.changeState(this.target.states.pausing);
-      },
-      drop: function() {
-        this.target.changeState(this.target.states.dropping);
-      },
-      moveLeft: function() {
-        this.target.changeState(this.target.states.movingLeft);
-      },
-      moveRight: function() {
-        moveRight();
-      },
-      moveDown: function() {
-        this.target.changeState(this.target.states.movingDown);
-      },
-      rotateClockWise: function() {
-        this.target.changeState(this.target.states.rotatingClockWise);
-      },
-      rotateCounterClock: function() {
-        this.target.changeState(this.target.states.rotatingCounterClock);
-      },
-      speedUp: function() {
-        this.target.changeState(this.target.states.speedingUp);
-      }
-    },
-    movingDown: {
-      initialize: function(target) {
-        this.target = target;
-      },
-      execute: function() {
-        moveDown();
-      },
-      initiate: function() {
-        this.target.changeState(this.target.states.initiating);
-      },
-      pause: function() {
-        this.target.changeState(this.target.states.pausing);
-      },
-      drop: function() {
-        this.target.changeState(this.target.states.dropping);
-      },
-      moveLeft: function() {
-        this.target.changeState(this.target.states.movingLeft);
-      },
-      moveRight: function() {
-        this.target.changeState(this.target.states.movingRight);
-      },
-      moveDown: function() {
-        moveDown();
-      },
-      rotateClockWise: function() {
-        this.target.changeState(this.target.states.rotatingClockWise);
-      },
-      rotateCounterClock: function() {
-        this.target.changeState(this.target.states.rotatingCounterClock);
-      },
-      speedUp: function() {
-        this.target.changeState(this.target.states.speedingUp);
-      }
-    },
-    rotatingClockWise: {
-      initialize: function(target) {
-        this.target = target;
-      },
-      execute: function() {
-        rotateClockWise();
-      },
-      initiate: function() {
-        this.target.changeState(this.target.states.initiating);
-      },
-      pause: function() {
-        this.target.changeState(this.target.states.pausing);
-      },
-      drop: function() {
-        this.target.changeState(this.target.states.dropping);
-      },
-      moveLeft: function() {
-        this.target.changeState(this.target.states.movingLeft);
-      },
-      moveRight: function() {
-        this.target.changeState(this.target.states.movingRight);
-      },
-      moveDown: function() {
-        this.target.changeState(this.target.states.movingDown);
-      },
-      rotateClockWise: function() {
-        rotateClockWise();
-      },
-      rotateCounterClock: function() {
-        this.target.changeState(this.target.states.rotatingCounterClock);
-      },
-      speedUp: function() {
-        this.target.changeState(this.target.states.speedingUp);
-      }
-    },
-    rotatingCounterClock: {
-      initialize: function(target) {
-        this.target = target;
-      },
-      execute: function() {
-        rotateCounterClockwise();
-      },
-      initiate: function() {
-        this.target.changeState(this.target.states.initiating);
-      },
-      pause: function() {
-        this.target.changeState(this.target.states.pausing);
-      },
-      drop: function() {
-        this.target.changeState(this.target.states.dropping);
-      },
-      moveLeft: function() {
-        this.target.changeState(this.target.states.movingLeft);
-      },
-      moveRight: function() {
-        this.target.changeState(this.target.states.movingRight);
-      },
-      moveDown: function() {
-        this.target.changeState(this.target.states.movingDown);
-      },
-      rotateClockWise: function() {
-        this.target.changeState(this.target.states.rotatingClockWise);
-      },
-      rotateCounterClock: function() {
-        rotateCounterClockwise();
-      },
-      speedUp: function() {
-        this.target.changeState(this.target.states.speedingUp);
-      }
-    },
-    rotatingCounterClock: {
-      initialize: function(target) {
-        this.target = target;
-      },
-      execute: function() {
-        rotateCounterClockwise();
-      },
-      initiate: function() {
-        this.target.changeState(this.target.states.initiating);
-      },
-      pause: function() {
-        this.target.changeState(this.target.states.pausing);
-      },
-      drop: function() {
-        this.target.changeState(this.target.states.dropping);
-      },
-      moveLeft: function() {
-        this.target.changeState(this.target.states.movingLeft);
-      },
-      moveRight: function() {
-        this.target.changeState(this.target.states.movingRight);
-      },
-      moveDown: function() {
-        this.target.changeState(this.target.states.movingDown);
-      },
-      rotateClockWise: function() {
-        this.target.changeState(this.target.states.rotatingClockWise);
-      },
-      rotateCounterClock: function() {
-        rotateCounterClockwise();
-      },
-      speedUp: function() {
-        this.target.changeState(this.target.states.speedingUp);
-      }
-    },
-    speedingUp: {
-      initialize: function(target) {
-        this.target = target;
-      },
-      execute: function() {
-        speedUp();
-      },
-      initiate: function() {
-        this.target.changeState(this.target.states.initiating);
-      },
-      pause: function() {
-        this.target.changeState(this.target.states.pausing);
-      },
-      drop: function() {
-        this.target.changeState(this.target.states.dropping);
-      },
-      moveLeft: function() {
-        this.target.changeState(this.target.states.movingLeft);
-      },
-      moveRight: function() {
-        this.target.changeState(this.target.states.movingRight);
-      },
-      moveDown: function() {
-        this.target.changeState(this.target.states.movingDown);
-      },
-      rotateClockWise: function() {
-        this.target.changeState(this.target.states.rotatingClockWise);
-      },
-      rotateCounterClock: function() {
-        this.target.changeState(this.target.states.rotatingCounterClock);
-      },
-      speedUp: function() {
-      }
-    }
+    initiating: new Initiating(),
+    starting: new Starting(),
+    pausing: new Pausing(),
+    dropping: new Dropping(),
+    movingLeft: new MovingLeft(),
+    movingRight: new MovingRight(),
+    movingDown: new MovingDown(),
+    rotatingClockWise: new RotatingClockWise(),
+    rotatingCounterClock: new RotatingCounterClock(),
+    speedingUp: new SpeedingUp()
+    // initiating: {
+    //   initialize: function(target) {
+    //     this.target = target;
+    //   },
+    //   execute: function() {
+    //     initiateGame();
+    //   },
+    //   initiate: function() {
+    //   },
+    //   start: function() {
+    //     this.target.changeState(this.target.states.starting);
+    //   },
+    //   pause: function() {
+    //   },
+    //   drop: function() {
+    //   },
+    //   moveLeft: function() {
+    //   },
+    //   moveRight: function() {
+    //   },
+    //   moveDown: function() {
+    //   },
+    //   rotateClockWise: function() {
+    //   },
+    //   rotateCounterClock: function() {
+    //   }
+    // },
+    // starting: {
+    //   initialize: function(target) {
+    //     this.target = target;
+    //   },
+    //   execute: function() {
+    //     startGame();
+    //   },
+    //   initiate: function() {
+    //     this.target.changeState(this.target.states.initiating);
+    //   },
+    //   start: function() {
+    //   },
+    //   drop: function() {
+    //     this.target.changeState(this.target.states.dropping);
+    //   },
+    //   moveLeft: function() {
+    //     this.target.changeState(this.target.states.movingLeft);
+    //   },
+    //   moveRight: function() {
+    //     this.target.changeState(this.target.states.movingRight);
+    //   },
+    //   moveDown: function() {
+    //     this.target.changeState(this.target.states.movingDown);
+    //   },
+    //   speedUp: function() {
+    //     this.target.changeState(this.target.states.speedingUp);
+    //   }
+    // },
+    // pausing: {
+    //   initialize: function(target) {
+    //     this.target = target;
+    //   },
+    //   execute: function() {
+    //     pauseGame();
+    //   },
+    //   initiate: function() {
+    //     this.target.changeState(this.target.states.initiating);
+    //   },
+    //   start: function() {
+    //     this.target.changeState(this.target.states.starting);
+    //   },
+    //   pause: function() {
+    //   },
+    //   drop: function() {
+    //   },
+    //   moveLeft: function() {
+    //   },
+    //   moveRight: function() {
+    //   },
+    //   moveDown: function() {
+    //   },
+    //   rotateClockWise: function() {
+    //   },
+    //   rotateCounterClock: function() {
+    //   }
+    // },
+    // dropping: {
+    //   initialize: function(target) {
+    //     this.target = target;
+    //   },
+    //   execute: function() {
+    //     drop();
+    //   },
+    //   initiate: function() {
+    //     this.target.changeState(this.target.states.initiating);
+    //   },
+    //   pause: function() {
+    //     this.target.changeState(this.target.states.pausing);
+    //   },
+    //   drop: function() {
+    //     drop();
+    //   },
+    //   moveLeft: function() {
+    //     this.target.changeState(this.target.states.movingLeft);
+    //   },
+    //   moveRight: function() {
+    //     this.target.changeState(this.target.states.movingRight);
+    //   },
+    //   moveDown: function() {
+    //     this.target.changeState(this.target.states.movingDown);
+    //   },
+    //   rotateClockWise: function() {
+    //     this.target.changeState(this.target.states.rotatingClockWise);
+    //   },
+    //   rotateCounterClock: function() {
+    //     this.target.changeState(this.target.states.rotatingCounterClock);
+    //   },
+    //   speedUp: function() {
+    //     this.target.changeState(this.target.states.speedingUp);
+    //   }
+    // },
+    // movingLeft: {
+    //   initialize: function(target) {
+    //     this.target = target;
+    //   },
+    //   execute: function() {
+    //     moveLeft();
+    //   },
+    //   initiate: function() {
+    //     this.target.changeState(this.target.states.initiating);
+    //   },
+    //   pause: function() {
+    //     this.target.changeState(this.target.states.pausing);
+    //   },
+    //   drop: function() {
+    //     this.target.changeState(this.target.states.dropping);
+    //   },
+    //   moveLeft: function() {
+    //     moveLeft();
+    //   },
+    //   moveRight: function() {
+    //     this.target.changeState(this.target.states.movingRight);
+    //   },
+    //   moveDown: function() {
+    //     this.target.changeState(this.target.states.movingDown);
+    //   },
+    //   rotateClockWise: function() {
+    //     this.target.changeState(this.target.states.rotatingClockWise);
+    //   },
+    //   rotateCounterClock: function() {
+    //     this.target.changeState(this.target.states.rotatingCounterClock);
+    //   },
+    //   speedUp: function() {
+    //     this.target.changeState(this.target.states.speedingUp);
+    //   }
+    // },
+    // movingRight: {
+    //   initialize: function(target) {
+    //     this.target = target;
+    //   },
+    //   execute: function() {
+    //     moveRight();
+    //   },
+    //   initiate: function() {
+    //     this.target.changeState(this.target.states.initiating);
+    //   },
+    //   pause: function() {
+    //     this.target.changeState(this.target.states.pausing);
+    //   },
+    //   drop: function() {
+    //     this.target.changeState(this.target.states.dropping);
+    //   },
+    //   moveLeft: function() {
+    //     this.target.changeState(this.target.states.movingLeft);
+    //   },
+    //   moveRight: function() {
+    //     moveRight();
+    //   },
+    //   moveDown: function() {
+    //     this.target.changeState(this.target.states.movingDown);
+    //   },
+    //   rotateClockWise: function() {
+    //     this.target.changeState(this.target.states.rotatingClockWise);
+    //   },
+    //   rotateCounterClock: function() {
+    //     this.target.changeState(this.target.states.rotatingCounterClock);
+    //   },
+    //   speedUp: function() {
+    //     this.target.changeState(this.target.states.speedingUp);
+    //   }
+    // },
+    // movingDown: {
+    //   initialize: function(target) {
+    //     this.target = target;
+    //   },
+    //   execute: function() {
+    //     moveDown();
+    //   },
+    //   initiate: function() {
+    //     this.target.changeState(this.target.states.initiating);
+    //   },
+    //   pause: function() {
+    //     this.target.changeState(this.target.states.pausing);
+    //   },
+    //   drop: function() {
+    //     this.target.changeState(this.target.states.dropping);
+    //   },
+    //   moveLeft: function() {
+    //     this.target.changeState(this.target.states.movingLeft);
+    //   },
+    //   moveRight: function() {
+    //     this.target.changeState(this.target.states.movingRight);
+    //   },
+    //   moveDown: function() {
+    //     moveDown();
+    //   },
+    //   rotateClockWise: function() {
+    //     this.target.changeState(this.target.states.rotatingClockWise);
+    //   },
+    //   rotateCounterClock: function() {
+    //     this.target.changeState(this.target.states.rotatingCounterClock);
+    //   },
+    //   speedUp: function() {
+    //     this.target.changeState(this.target.states.speedingUp);
+    //   }
+    // },
+    // rotatingClockWise: {
+    //   initialize: function(target) {
+    //     this.target = target;
+    //   },
+    //   execute: function() {
+    //     rotateClockWise();
+    //   },
+    //   initiate: function() {
+    //     this.target.changeState(this.target.states.initiating);
+    //   },
+    //   pause: function() {
+    //     this.target.changeState(this.target.states.pausing);
+    //   },
+    //   drop: function() {
+    //     this.target.changeState(this.target.states.dropping);
+    //   },
+    //   moveLeft: function() {
+    //     this.target.changeState(this.target.states.movingLeft);
+    //   },
+    //   moveRight: function() {
+    //     this.target.changeState(this.target.states.movingRight);
+    //   },
+    //   moveDown: function() {
+    //     this.target.changeState(this.target.states.movingDown);
+    //   },
+    //   rotateClockWise: function() {
+    //     rotateClockWise();
+    //   },
+    //   rotateCounterClock: function() {
+    //     this.target.changeState(this.target.states.rotatingCounterClock);
+    //   },
+    //   speedUp: function() {
+    //     this.target.changeState(this.target.states.speedingUp);
+    //   }
+    // },
+    // rotatingCounterClock: {
+    //   initialize: function(target) {
+    //     this.target = target;
+    //   },
+    //   execute: function() {
+    //     rotateCounterClockwise();
+    //   },
+    //   initiate: function() {
+    //     this.target.changeState(this.target.states.initiating);
+    //   },
+    //   pause: function() {
+    //     this.target.changeState(this.target.states.pausing);
+    //   },
+    //   drop: function() {
+    //     this.target.changeState(this.target.states.dropping);
+    //   },
+    //   moveLeft: function() {
+    //     this.target.changeState(this.target.states.movingLeft);
+    //   },
+    //   moveRight: function() {
+    //     this.target.changeState(this.target.states.movingRight);
+    //   },
+    //   moveDown: function() {
+    //     this.target.changeState(this.target.states.movingDown);
+    //   },
+    //   rotateClockWise: function() {
+    //     this.target.changeState(this.target.states.rotatingClockWise);
+    //   },
+    //   rotateCounterClock: function() {
+    //     rotateCounterClockwise();
+    //   },
+    //   speedUp: function() {
+    //     this.target.changeState(this.target.states.speedingUp);
+    //   }
+    // },
+    // rotatingCounterClock: {
+    //   initialize: function(target) {
+    //     this.target = target;
+    //   },
+    //   execute: function() {
+    //     rotateCounterClockwise();
+    //   },
+    //   initiate: function() {
+    //     this.target.changeState(this.target.states.initiating);
+    //   },
+    //   pause: function() {
+    //     this.target.changeState(this.target.states.pausing);
+    //   },
+    //   drop: function() {
+    //     this.target.changeState(this.target.states.dropping);
+    //   },
+    //   moveLeft: function() {
+    //     this.target.changeState(this.target.states.movingLeft);
+    //   },
+    //   moveRight: function() {
+    //     this.target.changeState(this.target.states.movingRight);
+    //   },
+    //   moveDown: function() {
+    //     this.target.changeState(this.target.states.movingDown);
+    //   },
+    //   rotateClockWise: function() {
+    //     this.target.changeState(this.target.states.rotatingClockWise);
+    //   },
+    //   rotateCounterClock: function() {
+    //     rotateCounterClockwise();
+    //   },
+    //   speedUp: function() {
+    //     this.target.changeState(this.target.states.speedingUp);
+    //   }
+    // },
+    // speedingUp: {
+    //   initialize: function(target) {
+    //     this.target = target;
+    //   },
+    //   execute: function() {
+    //     speedUp();
+    //   },
+    //   initiate: function() {
+    //     this.target.changeState(this.target.states.initiating);
+    //   },
+    //   pause: function() {
+    //     this.target.changeState(this.target.states.pausing);
+    //   },
+    //   drop: function() {
+    //     this.target.changeState(this.target.states.dropping);
+    //   },
+    //   moveLeft: function() {
+    //     this.target.changeState(this.target.states.movingLeft);
+    //   },
+    //   moveRight: function() {
+    //     this.target.changeState(this.target.states.movingRight);
+    //   },
+    //   moveDown: function() {
+    //     this.target.changeState(this.target.states.movingDown);
+    //   },
+    //   rotateClockWise: function() {
+    //     this.target.changeState(this.target.states.rotatingClockWise);
+    //   },
+    //   rotateCounterClock: function() {
+    //     this.target.changeState(this.target.states.rotatingCounterClock);
+    //   },
+    //   speedUp: function() {
+    //   }
+    // }
   },
   initialize: function() {
     this.states.initiating.initialize(this);
@@ -464,6 +619,7 @@ let game = {
   speedUp: function() {
     this.state.speedUp();
   },
+  // this not working as all the states are now the same state! (copies of generic state....)
   changeState: function(state) {
     if (this.state !== state) {
       this.state = state;
