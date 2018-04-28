@@ -621,43 +621,64 @@ function Shape() {
   this.squares2D = [[]];
   // If there is space to rotate 90 degrees, rotates this shape 
   // by rotating the contents of this.squares2D, and mutating the 
-  // x and y coords of the shape's squares.                
+  // x and y coords of this.squares.                
   this.rotate = function(direction='clockwise') {
     // make a deep copy to check if rotation is possible.
     let squares2DClone = JSON.parse(JSON.stringify(this.squares2D)); 
-    squares2DClone = getRotated(squares2DClone);   
+    squares2DClone = rotate(squares2DClone);   
     if (isSpaceToRotate(squares2DClone)) {
-      this.squares2D = getRotated(this.squares2D);
+      this.squares2D = rotate(this.squares2D);
     }
     // returns shape2D rotated in its matrix, and
     // with its squares mutated to implement the rotation.
-    function getRotated(shape2D) {
-      // a container of the correct size.
-      let rotated = [[,,,],[,,,],[,,,]];
-      for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
+    function rotate(shape2D) {
+      let rotated = getEmpty2DArray();
+      for (let i = 0; i < shape2D.length; i++) {
+        for (let j = 0; j < shape2D.length; j++) {
           // current square to move
           let sq = shape2D[i][j];
           // Mutate the squares x and y coords to rotate the entire shape
           // Place the mutated square in corresponding place in new matrix.
           if (direction === 'clockwise') {
             if (sq) {
-              sq.x += 2 - j - i;
+              sq.x += shape2D.length - j - i - 1;
               sq.y += j - i;
             }
-            rotated[j][2 - i] = sq;
+            rotated[j][shape2D.length - i - 1] = sq;
           } else if (direction === 'counterClockWise') {
             if (sq) {
               sq.x += 0 - j + i;
-              sq.y += 2 - (j + i);
+              sq.y += shape2D.length - (j + i) - 1;
             }
-            rotated[2 - j][0 + i] = sq;
+            rotated[shape2D.length - j - 1][0 + i] = sq;
           }
         }
       }
       return rotated;
+      // Returns a 2D array of the correct size.
+      function getEmpty2DArray() {
+        let outer = [];
+        for (let i = 0; i < shape2D.length; i++) {
+          let inner = [];
+          outer[i] = inner;
+        }
+        return outer;
+      }
     }
-  } 
+    // returns true if no squares in rotated2D share both x and y coords with
+    // any landedSquare or is out of bounds.
+    function isSpaceToRotate(rotated2D) {
+      return rotated2D.every(a => a.every(s => s ? hasSpace(s) : true));
+      // returns true if sq is not overlapping any landed square or out of bounds
+      function hasSpace(sq) {
+        let isSpaceFromLanded = game.landedSquares.every(
+          ls => !(ls.x === sq.x && ls.y === sq.y)
+        );
+        let isInBounds = sq.x >= 0 && sq.x < rowLength && sq.y < columnLength - 1;
+        return isSpaceFromLanded && isInBounds;
+      }
+    }
+  }
   this.draw = function() {
     this.squares.forEach(s => s.draw());
   };
@@ -695,45 +716,9 @@ function IShape() {
     [this.squares[0], this.squares[1], this.squares[2], this.squares[3]],
     [undefined, undefined, undefined, undefined]    
   ];
-  // TODO: refactor Shape to work with both 2d arrays of length 3 and 4.
-  // customized for a 2d array of size 4.
-  this.rotate = function(direction='clockwise') {
-    // make a deep copy to check if rotation is possible
-    let squares2DClone = JSON.parse(JSON.stringify(this.squares2D)); 
-    squares2DClone = getRotated(squares2DClone);   
-    if (isSpaceToRotate(squares2DClone)) {
-      this.squares2D = getRotated(this.squares2D);
-    }
-    // returns shape2D rotated in its matrix, and
-    // with its squares mutated to implement the rotation.
-    function getRotated(shape2D) {
-      // a container of the correct size.
-      let rotated = [[,,,,],[,,,,],[,,,,],[,,,,]];
-      for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
-          // current square to move
-          let sq = shape2D[i][j];
-          // Mutate the squares x and y coords to rotate the entire shape
-          // Place the mutated square in corresponding place in new matrix.
-          if (direction === 'clockwise') {
-            if (sq) {
-              sq.x += 3 - j - i;
-              sq.y += j - i;
-            }
-            rotated[j][3 - i] = sq;
-          } else if (direction === 'counterClockWise') {
-            if (sq) {
-              sq.x += 0 - j + i;
-              sq.y += 3 - (j + i);
-            }
-            rotated[3 - j][0 + i] = sq;
-          }
-        }
-      }
-      return rotated;
-    }
-  } 
 }
+IShape.prototype = Object.create(Shape.prototype);
+IShape.prototype.constructor = IShape;
 
 function TShape() {
   Shape.call(this);
@@ -834,18 +819,6 @@ function OShape() {
 OShape.prototype = Object.create(Shape.prototype);
 OShape.prototype.constructor = OShape;
 
-// return true if no squares in rotated2D share both x and y coords with
-// any landedSquare or is out of bounds.
-function isSpaceToRotate(rotated2D) {
-  function hasSpace(sq) {
-    let isSpaceFromLanded = game.landedSquares.every(
-      ls => !(ls.x === sq.x && ls.y === sq.y)
-    );
-    let isInBounds = sq.x >= 0 && sq.x < rowLength && sq.y < columnLength - 1;
-    return isSpaceFromLanded && isInBounds;
-  };
-  return rotated2D.every(a => a.every(s => s ? hasSpace(s) : true));
-}
 
 // User input handler =========================================================
 function handleKeyDown(e) {
