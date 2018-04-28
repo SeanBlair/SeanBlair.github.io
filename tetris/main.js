@@ -244,6 +244,8 @@ let game = {
 }
 // for stopping setInterval()
 let interval;
+// For disabling keypad input when game is over.
+let isGameFinished;
 // initialize game object.
 game.initialize();
 // Game entry point, initiates game state.
@@ -252,6 +254,7 @@ initiateGame();
 // Game logic =================================================================
 // initiates the state for a new game.
 function initiateGame() {
+  isGameFinished = false;
   clearInterval(interval);
   lineCount = 0;
   currentLevel = 0;
@@ -375,6 +378,7 @@ function isGameOver() {
 
 // Stops the game showing a Game Over! notification.
 function endGame() {
+  isGameFinished = true;
   clearInterval(interval);
   ctx.font = '48px serif';
   ctx.fillStyle = 'black'
@@ -809,6 +813,9 @@ class OShape extends Shape {
 
 // User input handler =========================================================
 function handleKeyDown(e) {
+  if (isGameFinished) {
+    return;
+  }
   switch (e.keyCode) {
     case keyJ:
     game.moveLeft();
