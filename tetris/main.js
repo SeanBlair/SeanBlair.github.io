@@ -40,7 +40,8 @@ const resetButton = document.querySelector('.reset');
 const levelLabel = document.querySelector('.level');
 // For displaying current line count
 const linesLabel = document.querySelector('.lines');
-// Game variables.=============================================================
+
+// Game variables and classes.=================================================
 // current drop interval
 let dropInterval;
 // For storing lines finished.
@@ -49,6 +50,118 @@ let lineCount;
 let currentLevel;
 // For storing previous shape id.
 let previousRandomId;
+
+// Game state objects =========================================================
+// Generic state object has all state methods, allowing
+// all the concrete states objects to override only the
+// methods that they need to customize and inherit the rest.
+class GenericState {
+  initialize(target) {
+    this.target = target;
+  }
+  // this method will be shadowed by all concrete state objects.
+  execute() {
+  }
+  initiate() {
+    this.target.changeState(this.target.states.initiating);
+  }
+  start() {
+    this.target.changeState(this.target.states.starting);    
+  }
+  pause() {
+    this.target.changeState(this.target.states.pausing);
+  }
+  drop() {
+    this.target.changeState(this.target.states.dropping);    
+  }
+  moveLeft() {
+    this.target.changeState(this.target.states.movingLeft);
+  }
+  moveRight() {
+    this.target.changeState(this.target.states.movingRight);
+  }
+  moveDown() {
+    this.target.changeState(this.target.states.movingDown);
+  }
+  rotateClockWise() {
+    this.target.changeState(this.target.states.rotatingClockWise);
+  }
+  rotateCounterClock() {
+    this.target.changeState(this.target.states.rotatingCounterClock);
+  }
+  speedUp() {
+    this.target.changeState(this.target.states.speedingUp);
+  }
+}
+// Concrete State objects.=====================================================
+class Initiating extends GenericState {
+  execute() {
+    initiateGame();
+  }
+}
+class Starting extends GenericState {
+  execute() {
+    startGame();
+  }
+}
+class Pausing extends GenericState {
+  execute() {
+    pauseGame();
+  }
+}
+class Dropping extends GenericState {
+  execute() {
+    drop();
+  }
+  drop() {
+    drop();
+  }
+}
+class MovingLeft extends GenericState {
+  execute() {
+    moveLeft();
+  }
+  moveLeft() {
+    moveLeft();
+  }
+}
+class MovingRight extends GenericState {
+  execute() {
+    moveRight();
+  }
+  moveRight() {
+    moveRight();
+  }
+}
+class MovingDown extends GenericState {
+  execute() {
+    moveDown();
+  }
+  moveDown() {
+    moveDown();
+  }
+}
+class RotatingClockWise extends GenericState {
+  execute() {
+    rotateClockWise();
+  }
+  rotateClockWise() {
+    rotateClockWise();
+  }
+}
+class RotatingCounterClock extends GenericState {
+  execute() {
+    rotateCounterClockwise();
+  }
+  rotateCounterClock() {
+    rotateCounterClockwise();
+  }
+}
+class SpeedingUp extends GenericState {
+  execute() {
+    speedUp();
+  }
+}
 
 // The game object
 let game = {
@@ -131,158 +244,6 @@ let interval;
 game.initialize();
 // Game entry point, initiates game state.
 initiateGame();
-
-// Game state objects =========================================================
-// Generic state object has all state methods, allowing
-// all the concrete states objects to override only the
-// methods that they need to customize and inherit the rest.
-function GenericState() {
-  this.initialize = function(target) {
-    this.target = target;
-  }
-  // this method will be shadowed by all concrete state objects.
-  this.execute = function() {
-  }
-  this.initiate = function() {
-    this.target.changeState(this.target.states.initiating);
-  }
-  this.start = function() {
-    this.target.changeState(this.target.states.starting);    
-  }
-  this.pause = function() {
-    this.target.changeState(this.target.states.pausing);
-  }
-  this.drop = function() {
-    this.target.changeState(this.target.states.dropping);    
-  }
-  this.moveLeft = function() {
-    this.target.changeState(this.target.states.movingLeft);
-  }
-  this.moveRight = function() {
-    this.target.changeState(this.target.states.movingRight);
-  }
-  this.moveDown = function() {
-    this.target.changeState(this.target.states.movingDown);
-  }
-  this.rotateClockWise = function() {
-    this.target.changeState(this.target.states.rotatingClockWise);
-  }
-  this.rotateCounterClock = function() {
-    this.target.changeState(this.target.states.rotatingCounterClock);
-  }
-  this.speedUp = function() {
-    this.target.changeState(this.target.states.speedingUp);
-  }
-}
-// Concrete State objects.=====================================================
-// TODO refactor to use classes syntax.
-function Initiating() {
-  GenericState.call(this);
-  this.execute = function() {
-    initiateGame();
-  }
-}
-Initiating.prototype = Object.create(GenericState.prototype);
-Initiating.prototype.constructor = Initiating;
-
-function Starting() {
-  GenericState.call(this);
-  this.execute = function() {
-    startGame();
-  }
-}
-Starting.prototype = Object.create(GenericState.prototype);
-Starting.prototype.constructor = Starting;
-
-function Pausing() {
-  GenericState.call(this);
-  this.execute = function() {
-    pauseGame();
-  }
-}
-Pausing.prototype = Object.create(GenericState.prototype);
-Pausing.prototype.constructor = Pausing;
-
-function Dropping() {
-  GenericState.call(this);
-  this.execute = function() {
-    drop();
-  }
-  this.drop = function() {
-    drop();
-  }
-}
-Dropping.prototype = Object.create(GenericState.prototype);
-Dropping.prototype.constructor = Dropping;
-
-function MovingLeft() {
-  GenericState.call(this);
-  this.execute = function() {
-    moveLeft();
-  }
-  this.moveLeft = function() {
-    moveLeft();
-  }
-}
-MovingLeft.prototype = Object.create(GenericState.prototype);
-MovingLeft.prototype.constructor = MovingLeft;
-
-function MovingRight() {
-  GenericState.call(this);
-  this.execute = function() {
-    moveRight();
-  }
-  this.moveRight = function() {
-    moveRight();
-  }
-}
-MovingRight.prototype = Object.create(GenericState.prototype);
-MovingRight.prototype.constructor = MovingRight;
-
-function MovingDown() {
-  GenericState.call(this);
-  this.execute = function() {
-    moveDown();
-  }
-  this.moveDown = function() {
-    moveDown();
-  }
-}
-MovingDown.prototype = Object.create(GenericState.prototype);
-MovingDown.prototype.constructor = MovingDown;
-
-function RotatingClockWise() {
-  GenericState.call(this);
-  this.execute = function() {
-    rotateClockWise();
-  }
-  this.rotateClockWise = function() {
-    rotateClockWise();
-  }
-}
-RotatingClockWise.prototype = Object.create(GenericState.prototype);
-RotatingClockWise.prototype.constructor = RotatingClockWise;
-
-function RotatingCounterClock() {
-  GenericState.call(this);
-  this.execute = function() {
-    rotateCounterClockwise();
-  }
-  this.rotateCounterClock = function() {
-    rotateCounterClockwise();
-  }
-}
-RotatingCounterClock.prototype = Object.create(GenericState.prototype);
-RotatingCounterClock.prototype.constructor = RotatingCounterClock;
-
-function SpeedingUp() {
-  GenericState.call(this);
-  this.execute = function() {
-    speedUp();
-  }
-}
-SpeedingUp.prototype = Object.create(GenericState.prototype);
-SpeedingUp.prototype.constructor = SpeedingUp;
 
 // Game logic =================================================================
 // initiates the state for a new game.
@@ -563,11 +524,13 @@ function render() {
 // x: [0 ... rowLength - 1]
 // y: [0 ... columnLength - 1]
 // color: any css color.
-function Square(x, y, color) {
-  this.x = x;
-  this.y = y;
-  this.color = color;
-  this.draw = function() {
+class Square {
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+  }
+  draw() {
     ctx.strokeStyle = 'rgb(0,0,0)';
     ctx.strokeRect(
       LEFT + this.x * squareSize + 1, 
@@ -575,7 +538,7 @@ function Square(x, y, color) {
       squareSize - 1, 
       squareSize - 1
     );
-    ctx.fillStyle = color;
+    ctx.fillStyle = this.color;
     ctx.fillRect(
       LEFT + this.x * squareSize + 1, 
       TOP + this.y * squareSize + 1, 
@@ -583,30 +546,30 @@ function Square(x, y, color) {
       squareSize - 1
     );
   }
-  this.moveLeft = function() {
+  moveLeft() {
     this.x--;
   }
-  this.moveRight = function() {
+  moveRight() {
     this.x++;
   }
-  this.moveDown = function() {
+  moveDown() {
     this.y++;
   }
-  this.canMoveLeft = function() {
+  canMoveLeft() {
     let isSquareOnLeft = game.landedSquares.some(
       s => s.y === this.y && s.x === this.x - 1
     );
     let isAtLeftBorder = this.x === 0;
     return !isSquareOnLeft && !isAtLeftBorder;
   }
-  this.canMoveRight = function() {
+  canMoveRight() {
     let isSquareOnRight = game.landedSquares.some(
       s => s.y === this.y && s.x === this.x + 1
     );
     let isAtRightBorder = this.x === rowLength - 1;
     return !isSquareOnRight && !isAtRightBorder;
   }
-  this.canMoveDown = function() {
+  canMoveDown() {
     let isSquareBellow = game.landedSquares.some(
       s => s.x === this.x && s.y === this.y + 1
     );
@@ -616,13 +579,15 @@ function Square(x, y, color) {
 }
 
 // A generic tetris tetromino shape.
-function Shape() {
-  this.squares = [];
-  this.squares2D = [[]];
+class Shape {
+  constructor(squares, squares2D) {
+    this.squares = squares;
+    this.squares2D = squares2D;
+  }
   // If there is space to rotate 90 degrees, rotates this shape 
   // by rotating the contents of this.squares2D, and mutating the 
   // x and y coords of this.squares.                
-  this.rotate = function(direction='clockwise') {
+  rotate(direction='clockwise') {
     // make a deep copy to check if rotation is possible.
     let squares2DClone = JSON.parse(JSON.stringify(this.squares2D)); 
     squares2DClone = rotate(squares2DClone);   
@@ -679,146 +644,147 @@ function Shape() {
       }
     }
   }
-  this.draw = function() {
+  draw() {
     this.squares.forEach(s => s.draw());
-  };
-  this.moveLeft = function() {
+  }
+  moveLeft() {
     this.squares.forEach(s => s.moveLeft());
-  };
-  this.moveRight = function() {
+  }
+  moveRight() {
     this.squares.forEach(s => s.moveRight());
-  };
-  this.moveDown = function() {
+  }
+  moveDown() {
     this.squares.forEach(s => s.moveDown());
-  };
-  this.isSpaceOnLeft = function() {
+  }
+  isSpaceOnLeft() {
     return this.squares.every(s => s.canMoveLeft());
-  };
-  this.isSpaceOnRight = function() {
+  }
+  isSpaceOnRight() {
     return this.squares.every(s => s.canMoveRight());
-  };
-  this.isSpaceBelow = function() {
+  }
+  isSpaceBelow() {
     return this.squares.every(s => s.canMoveDown());
-  };
+  }
 }
 
-function IShape() {
-  Shape.call(this);
-  this.squares = [
-    new Square(3, 0, 'cyan'),
-    new Square(4, 0, 'cyan'),
-    new Square(5, 0, 'cyan'),
-    new Square(6, 0, 'cyan')
-  ];
-  this.squares2D = [
-    [undefined, undefined, undefined, undefined],
-    [undefined, undefined, undefined, undefined],
-    [this.squares[0], this.squares[1], this.squares[2], this.squares[3]],
-    [undefined, undefined, undefined, undefined]    
-  ];
+// Concrete shapes ============================================================
+class IShape extends Shape {
+  constructor() {
+    let squares = [
+      new Square(3, 0, 'cyan'),
+      new Square(4, 0, 'cyan'),
+      new Square(5, 0, 'cyan'),
+      new Square(6, 0, 'cyan')
+    ];
+    let squares2D = [
+      [undefined, undefined, undefined, undefined],
+      [undefined, undefined, undefined, undefined],
+      [squares[0], squares[1], squares[2], squares[3]],
+      [undefined, undefined, undefined, undefined]    
+    ]
+    super(squares, squares2D);
+  }
 }
-IShape.prototype = Object.create(Shape.prototype);
-IShape.prototype.constructor = IShape;
 
-function TShape() {
-  Shape.call(this);
-  this.squares = [
-    new Square(4, -1, '#b300b3'),
-    new Square(3, 0, '#b300b3'),
-    new Square(4, 0, '#b300b3'),
-    new Square(5, 0, '#b300b3')
-  ];
-  this.squares2D = [
-    [undefined, this.squares[0], undefined],
-    [this.squares[1], this.squares[2], this.squares[3]],
-    [undefined, undefined, undefined]
-  ];
+class TShape extends Shape {
+  constructor() {
+    let squares = [
+      new Square(4, -1, '#b300b3'),
+      new Square(3, 0, '#b300b3'),
+      new Square(4, 0, '#b300b3'),
+      new Square(5, 0, '#b300b3')
+    ];
+    let squares2D = [
+      [undefined, squares[0], undefined],
+      [squares[1], squares[2], squares[3]],
+      [undefined, undefined, undefined]
+    ]
+    super(squares, squares2D);
+  }
 }
-TShape.prototype = Object.create(Shape.prototype);
-TShape.prototype.constructor = TShape;
 
-function SShape() {
-  Shape.call(this);
-  this.squares = [
-    new Square(4, -1, '#00b300'),
-    new Square(5, -1, '#00b300'),
-    new Square(3, 0, '#00b300'),
-    new Square(4, 0, '#00b300')
-  ];
-  this.squares2D = [
-    [undefined, this.squares[0],  this.squares[1]],
-    [this.squares[2], this.squares[3], undefined],
-    [undefined, undefined, undefined]
-  ];
+class SShape extends Shape {
+  constructor() {
+    let squares = [
+      new Square(4, -1, '#00b300'),
+      new Square(5, -1, '#00b300'),
+      new Square(3, 0, '#00b300'),
+      new Square(4, 0, '#00b300')
+    ];
+    let squares2D = [
+      [undefined, squares[0],  squares[1]],
+      [squares[2], squares[3], undefined],
+      [undefined, undefined, undefined]
+    ];
+    super(squares, squares2D);
+  }
 }
-SShape.prototype = Object.create(Shape.prototype);
-SShape.prototype.constructor = SShape;
 
-function ZShape() {
-  Shape.call(this);
-  this.squares = [
-    new Square(3, -1, '#ff6666'),
-    new Square(4, -1, '#ff6666'),
-    new Square(4, 0, '#ff6666'),
-    new Square(5, 0, '#ff6666')
-  ];
-  this.squares2D = [
-    [this.squares[0], this.squares[1], undefined],
-    [undefined, this.squares[2], this.squares[3]],
-    [undefined, undefined, undefined]
-  ];
+class ZShape extends Shape {
+  constructor() {
+    let squares = [
+      new Square(3, -1, '#ff6666'),
+      new Square(4, -1, '#ff6666'),
+      new Square(4, 0, '#ff6666'),
+      new Square(5, 0, '#ff6666')
+    ];
+    let squares2D = [
+      [squares[0], squares[1], undefined],
+      [undefined, squares[2], squares[3]],
+      [undefined, undefined, undefined]
+    ];
+    super(squares, squares2D);
+  }
 }
-ZShape.prototype = Object.create(Shape.prototype);
-ZShape.prototype.constructor = ZShape;
 
-function LShape() {
-  Shape.call(this);
-  this.squares = [
-    new Square(5, -1, 'orange'),
-    new Square(3, 0, 'orange'),
-    new Square(4, 0, 'orange'),
-    new Square(5, 0, 'orange')
-  ];
-  this.squares2D = [
-    [undefined, undefined, this.squares[0]],
-    [this.squares[1], this.squares[2], this.squares[3]],
-    [undefined, undefined, undefined]
-  ];
+class LShape extends Shape {
+  constructor() {
+    let squares = [
+      new Square(5, -1, 'orange'),
+      new Square(3, 0, 'orange'),
+      new Square(4, 0, 'orange'),
+      new Square(5, 0, 'orange')
+    ];
+    let squares2D = [
+      [undefined, undefined, squares[0]],
+      [squares[1], squares[2], squares[3]],
+      [undefined, undefined, undefined]
+    ];
+    super(squares, squares2D);
+  }
 }
-LShape.prototype = Object.create(Shape.prototype);
-LShape.prototype.constructor = LShape;
 
-function JShape() {
-  Shape.call(this);
-  this.squares = [
-    new Square(3, -1, '#6666ff'),
-    new Square(3, 0, '#6666ff'),
-    new Square(4, 0, '#6666ff'),
-    new Square(5, 0, '#6666ff')
-  ];
-  this.squares2D = [
-    [this.squares[0], undefined, undefined],
-    [this.squares[1], this.squares[2], this.squares[3]],
-    [undefined, undefined, undefined]
-  ];
+class JShape extends Shape {
+  constructor() {
+    let squares = [
+      new Square(3, -1, '#6666ff'),
+      new Square(3, 0, '#6666ff'),
+      new Square(4, 0, '#6666ff'),
+      new Square(5, 0, '#6666ff')
+    ];
+    let squares2D = [
+      [squares[0], undefined, undefined],
+      [squares[1], squares[2], squares[3]],
+      [undefined, undefined, undefined]
+    ];
+    super(squares, squares2D);
+  }
 }
-JShape.prototype = Object.create(Shape.prototype);
-JShape.prototype.constructor = JShape;
 
-function OShape() {
-  Shape.call(this);
-  this.squares = [
-    new Square(4, -1, 'yellow'),
-    new Square(5, -1, 'yellow'),
-    new Square(4, 0, 'yellow'),
-    new Square(5, 0, 'yellow')
-  ];
-  // no need for 2D matrix as rotation is ignored for this shape.
-  this.rotate = function() {};
+class OShape extends Shape {
+  constructor() {
+    let squares = [
+      new Square(4, -1, 'yellow'),
+      new Square(5, -1, 'yellow'),
+      new Square(4, 0, 'yellow'),
+      new Square(5, 0, 'yellow')
+    ];
+    // no need for 2D matrix as rotation is ignored for this shape.
+    super(squares, [[]]);
+  }
+  // shadow rotate with empy body to avoid rotation computation.
+  rotate() {};
 }
-OShape.prototype = Object.create(Shape.prototype);
-OShape.prototype.constructor = OShape;
-
 
 // User input handler =========================================================
 function handleKeyDown(e) {
