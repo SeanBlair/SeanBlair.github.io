@@ -1,11 +1,6 @@
 // TODO: Break file into smaller files.
-
-// Canvas html element
-const canvas = document.querySelector('.canvas');
-canvas.width = 150;
-canvas.height = 300;
-// object to draw on.
-const ctx = canvas.getContext('2d');
+// TODO: Allow user to start game at any level.
+// Game constants =============================================================
 // Pixel length of one tetromino square
 const squareSize = 15;
 // Number of squares in one row
@@ -21,6 +16,12 @@ const TOP = 0;
 const width = squareSize * rowLength;
 // game height in pixels
 const height = squareSize * columnLength;
+// Canvas html element
+const canvas = document.querySelector('.canvas');
+canvas.width = width;
+canvas.height = height;
+// object to draw on.
+const ctx = canvas.getContext('2d');
 // Keyboard ids
 const keyD = 68;
 const keyF = 70;
@@ -29,8 +30,6 @@ const keyK = 75;
 const keyL = 76;
 // Initial update interval in milliseconds
 const initialGameInterval = 800;
-// current drop interval
-let dropInterval;
 // add listener for user keyboard input
 window.addEventListener('keydown', handleKeyDown);
 // Start/stop button
@@ -41,6 +40,9 @@ const resetButton = document.querySelector('.reset');
 const levelLabel = document.querySelector('.level');
 // For displaying current line count
 const linesLabel = document.querySelector('.lines');
+// Game variables.=============================================================
+// current drop interval
+let dropInterval;
 // For storing lines finished.
 let lineCount;
 // For storing current level.
@@ -48,160 +50,17 @@ let currentLevel;
 // For storing previous shape id.
 let previousRandomId;
 
-
-  // Generic state object has all generic methods, allowing
-  // all the concrete states objects to override only the
-  // methods that they need to customize and inherit the rest.
-const genericState = {
-  initialize: function(target) {
-    this.target = target;
-  },
-  execute: function() {
-    console.log('in genericState.execute()');
-  },
-  initiate: function() {
-    this.target.changeState(this.target.states.initiating);
-  },
-  start: function() {
-    this.target.changeState(this.target.states.starting);    
-  },
-  pause: function() {
-    this.target.changeState(this.target.states.pausing);
-  },
-  drop: function() {
-    this.target.changeState(this.target.states.dropping);    
-  },
-  moveLeft: function() {
-    this.target.changeState(this.target.states.movingLeft);
-  },
-  moveRight: function() {
-    this.target.changeState(this.target.states.movingRight);
-  },
-  moveDown: function() {
-    this.target.changeState(this.target.states.movingDown);
-  },
-  rotateClockWise: function() {
-    this.target.changeState(this.target.states.rotatingClockWise);
-  },
-  rotateCounterClock: function() {
-    this.target.changeState(this.target.states.rotatingCounterClock);
-  },
-  speedUp: function() {
-    this.target.changeState(this.target.states.speedingUp);
-  }
-}
-
-function Initiating() {
-  // let initiating = genericState;
-  let initiating = Object.assign(genericState);
-  initiating.execute = function() {
-    initiateGame();
-  }
-  return initiating;
-}
-
-function Starting() {
-  // let starting = genericState;
-  let starting = Object.assign(genericState);
-  starting.execute = function() {
-    startGame();
-  }
-  return starting;
-}
-
-function Pausing() {
-  let pausing = genericState;
-  pausing.execute = function() {
-    pauseGame();
-  }
-  return pausing;
-}
-
-function Dropping() {
-  let dropping = genericState;
-  dropping.execute = function() {
-    drop();
-  }
-  dropping.drop = function() {
-    drop();
-  }
-  return dropping;
-}
-
-function MovingLeft() {
-  let movingLeft = genericState;
-  movingLeft.execute = function() {
-    moveLeft();
-  }
-  movingLeft.moveLeft = function() {
-    moveLeft();
-  }
-  return movingLeft;
-}
-
-function MovingRight() {
-  let movingRight = genericState;
-  movingRight.execute = function() {
-    moveRight();
-  }
-  movingRight.moveRight = function() {
-    moveRight();
-  }
-  return movingRight;
-}
-
-function MovingDown() {
-  let movingDown = genericState;
-  movingDown.execute = function() {
-    moveDown();
-  }
-  movingDown.moveRight = function() {
-    moveDown();
-  }
-  return movingDown;
-}
-
-
-function RotatingClockWise() {
-  let rotatingClockWise = genericState;
-  rotatingClockWise.execute = function() {
-    rotateClockWise();
-  }
-  rotatingClockWise.rotateClockWise = function() {
-    rotateClockWise();
-  }
-  return rotatingClockWise;
-}
-
-
-function RotatingCounterClock() {
-  let rotatingCounterClock = genericState;
-  rotatingCounterClock.execute = function() {
-    rotateCounterClockwise();
-  }
-  rotatingCounterClock.rotateCounterClock = function() {
-    rotateCounterClockwise();
-  }
-  return rotatingCounterClock;
-}
-
-function SpeedingUp() {
-  let speedingUp = genericState;
-  speedingUp.execute = function() {
-    speedUp();
-  }
-  return speedingUp;
-}
-
 // The game object
 let game = {
   // the current tetromino.
   theShape: undefined,
   // the squares of landed shapes.
   landedSquares: [],
+  // current game state
   state: undefined,
   // Uses the State pattern to share state with arbitrary
   // user input and the periodic game update interval.
+  // all states.
   states: {
     initiating: new Initiating(),
     starting: new Starting(),
@@ -213,369 +72,8 @@ let game = {
     rotatingClockWise: new RotatingClockWise(),
     rotatingCounterClock: new RotatingCounterClock(),
     speedingUp: new SpeedingUp()
-    // initiating: {
-    //   initialize: function(target) {
-    //     this.target = target;
-    //   },
-    //   execute: function() {
-    //     initiateGame();
-    //   },
-    //   initiate: function() {
-    //   },
-    //   start: function() {
-    //     this.target.changeState(this.target.states.starting);
-    //   },
-    //   pause: function() {
-    //   },
-    //   drop: function() {
-    //   },
-    //   moveLeft: function() {
-    //   },
-    //   moveRight: function() {
-    //   },
-    //   moveDown: function() {
-    //   },
-    //   rotateClockWise: function() {
-    //   },
-    //   rotateCounterClock: function() {
-    //   }
-    // },
-    // starting: {
-    //   initialize: function(target) {
-    //     this.target = target;
-    //   },
-    //   execute: function() {
-    //     startGame();
-    //   },
-    //   initiate: function() {
-    //     this.target.changeState(this.target.states.initiating);
-    //   },
-    //   start: function() {
-    //   },
-    //   drop: function() {
-    //     this.target.changeState(this.target.states.dropping);
-    //   },
-    //   moveLeft: function() {
-    //     this.target.changeState(this.target.states.movingLeft);
-    //   },
-    //   moveRight: function() {
-    //     this.target.changeState(this.target.states.movingRight);
-    //   },
-    //   moveDown: function() {
-    //     this.target.changeState(this.target.states.movingDown);
-    //   },
-    //   speedUp: function() {
-    //     this.target.changeState(this.target.states.speedingUp);
-    //   }
-    // },
-    // pausing: {
-    //   initialize: function(target) {
-    //     this.target = target;
-    //   },
-    //   execute: function() {
-    //     pauseGame();
-    //   },
-    //   initiate: function() {
-    //     this.target.changeState(this.target.states.initiating);
-    //   },
-    //   start: function() {
-    //     this.target.changeState(this.target.states.starting);
-    //   },
-    //   pause: function() {
-    //   },
-    //   drop: function() {
-    //   },
-    //   moveLeft: function() {
-    //   },
-    //   moveRight: function() {
-    //   },
-    //   moveDown: function() {
-    //   },
-    //   rotateClockWise: function() {
-    //   },
-    //   rotateCounterClock: function() {
-    //   }
-    // },
-    // dropping: {
-    //   initialize: function(target) {
-    //     this.target = target;
-    //   },
-    //   execute: function() {
-    //     drop();
-    //   },
-    //   initiate: function() {
-    //     this.target.changeState(this.target.states.initiating);
-    //   },
-    //   pause: function() {
-    //     this.target.changeState(this.target.states.pausing);
-    //   },
-    //   drop: function() {
-    //     drop();
-    //   },
-    //   moveLeft: function() {
-    //     this.target.changeState(this.target.states.movingLeft);
-    //   },
-    //   moveRight: function() {
-    //     this.target.changeState(this.target.states.movingRight);
-    //   },
-    //   moveDown: function() {
-    //     this.target.changeState(this.target.states.movingDown);
-    //   },
-    //   rotateClockWise: function() {
-    //     this.target.changeState(this.target.states.rotatingClockWise);
-    //   },
-    //   rotateCounterClock: function() {
-    //     this.target.changeState(this.target.states.rotatingCounterClock);
-    //   },
-    //   speedUp: function() {
-    //     this.target.changeState(this.target.states.speedingUp);
-    //   }
-    // },
-    // movingLeft: {
-    //   initialize: function(target) {
-    //     this.target = target;
-    //   },
-    //   execute: function() {
-    //     moveLeft();
-    //   },
-    //   initiate: function() {
-    //     this.target.changeState(this.target.states.initiating);
-    //   },
-    //   pause: function() {
-    //     this.target.changeState(this.target.states.pausing);
-    //   },
-    //   drop: function() {
-    //     this.target.changeState(this.target.states.dropping);
-    //   },
-    //   moveLeft: function() {
-    //     moveLeft();
-    //   },
-    //   moveRight: function() {
-    //     this.target.changeState(this.target.states.movingRight);
-    //   },
-    //   moveDown: function() {
-    //     this.target.changeState(this.target.states.movingDown);
-    //   },
-    //   rotateClockWise: function() {
-    //     this.target.changeState(this.target.states.rotatingClockWise);
-    //   },
-    //   rotateCounterClock: function() {
-    //     this.target.changeState(this.target.states.rotatingCounterClock);
-    //   },
-    //   speedUp: function() {
-    //     this.target.changeState(this.target.states.speedingUp);
-    //   }
-    // },
-    // movingRight: {
-    //   initialize: function(target) {
-    //     this.target = target;
-    //   },
-    //   execute: function() {
-    //     moveRight();
-    //   },
-    //   initiate: function() {
-    //     this.target.changeState(this.target.states.initiating);
-    //   },
-    //   pause: function() {
-    //     this.target.changeState(this.target.states.pausing);
-    //   },
-    //   drop: function() {
-    //     this.target.changeState(this.target.states.dropping);
-    //   },
-    //   moveLeft: function() {
-    //     this.target.changeState(this.target.states.movingLeft);
-    //   },
-    //   moveRight: function() {
-    //     moveRight();
-    //   },
-    //   moveDown: function() {
-    //     this.target.changeState(this.target.states.movingDown);
-    //   },
-    //   rotateClockWise: function() {
-    //     this.target.changeState(this.target.states.rotatingClockWise);
-    //   },
-    //   rotateCounterClock: function() {
-    //     this.target.changeState(this.target.states.rotatingCounterClock);
-    //   },
-    //   speedUp: function() {
-    //     this.target.changeState(this.target.states.speedingUp);
-    //   }
-    // },
-    // movingDown: {
-    //   initialize: function(target) {
-    //     this.target = target;
-    //   },
-    //   execute: function() {
-    //     moveDown();
-    //   },
-    //   initiate: function() {
-    //     this.target.changeState(this.target.states.initiating);
-    //   },
-    //   pause: function() {
-    //     this.target.changeState(this.target.states.pausing);
-    //   },
-    //   drop: function() {
-    //     this.target.changeState(this.target.states.dropping);
-    //   },
-    //   moveLeft: function() {
-    //     this.target.changeState(this.target.states.movingLeft);
-    //   },
-    //   moveRight: function() {
-    //     this.target.changeState(this.target.states.movingRight);
-    //   },
-    //   moveDown: function() {
-    //     moveDown();
-    //   },
-    //   rotateClockWise: function() {
-    //     this.target.changeState(this.target.states.rotatingClockWise);
-    //   },
-    //   rotateCounterClock: function() {
-    //     this.target.changeState(this.target.states.rotatingCounterClock);
-    //   },
-    //   speedUp: function() {
-    //     this.target.changeState(this.target.states.speedingUp);
-    //   }
-    // },
-    // rotatingClockWise: {
-    //   initialize: function(target) {
-    //     this.target = target;
-    //   },
-    //   execute: function() {
-    //     rotateClockWise();
-    //   },
-    //   initiate: function() {
-    //     this.target.changeState(this.target.states.initiating);
-    //   },
-    //   pause: function() {
-    //     this.target.changeState(this.target.states.pausing);
-    //   },
-    //   drop: function() {
-    //     this.target.changeState(this.target.states.dropping);
-    //   },
-    //   moveLeft: function() {
-    //     this.target.changeState(this.target.states.movingLeft);
-    //   },
-    //   moveRight: function() {
-    //     this.target.changeState(this.target.states.movingRight);
-    //   },
-    //   moveDown: function() {
-    //     this.target.changeState(this.target.states.movingDown);
-    //   },
-    //   rotateClockWise: function() {
-    //     rotateClockWise();
-    //   },
-    //   rotateCounterClock: function() {
-    //     this.target.changeState(this.target.states.rotatingCounterClock);
-    //   },
-    //   speedUp: function() {
-    //     this.target.changeState(this.target.states.speedingUp);
-    //   }
-    // },
-    // rotatingCounterClock: {
-    //   initialize: function(target) {
-    //     this.target = target;
-    //   },
-    //   execute: function() {
-    //     rotateCounterClockwise();
-    //   },
-    //   initiate: function() {
-    //     this.target.changeState(this.target.states.initiating);
-    //   },
-    //   pause: function() {
-    //     this.target.changeState(this.target.states.pausing);
-    //   },
-    //   drop: function() {
-    //     this.target.changeState(this.target.states.dropping);
-    //   },
-    //   moveLeft: function() {
-    //     this.target.changeState(this.target.states.movingLeft);
-    //   },
-    //   moveRight: function() {
-    //     this.target.changeState(this.target.states.movingRight);
-    //   },
-    //   moveDown: function() {
-    //     this.target.changeState(this.target.states.movingDown);
-    //   },
-    //   rotateClockWise: function() {
-    //     this.target.changeState(this.target.states.rotatingClockWise);
-    //   },
-    //   rotateCounterClock: function() {
-    //     rotateCounterClockwise();
-    //   },
-    //   speedUp: function() {
-    //     this.target.changeState(this.target.states.speedingUp);
-    //   }
-    // },
-    // rotatingCounterClock: {
-    //   initialize: function(target) {
-    //     this.target = target;
-    //   },
-    //   execute: function() {
-    //     rotateCounterClockwise();
-    //   },
-    //   initiate: function() {
-    //     this.target.changeState(this.target.states.initiating);
-    //   },
-    //   pause: function() {
-    //     this.target.changeState(this.target.states.pausing);
-    //   },
-    //   drop: function() {
-    //     this.target.changeState(this.target.states.dropping);
-    //   },
-    //   moveLeft: function() {
-    //     this.target.changeState(this.target.states.movingLeft);
-    //   },
-    //   moveRight: function() {
-    //     this.target.changeState(this.target.states.movingRight);
-    //   },
-    //   moveDown: function() {
-    //     this.target.changeState(this.target.states.movingDown);
-    //   },
-    //   rotateClockWise: function() {
-    //     this.target.changeState(this.target.states.rotatingClockWise);
-    //   },
-    //   rotateCounterClock: function() {
-    //     rotateCounterClockwise();
-    //   },
-    //   speedUp: function() {
-    //     this.target.changeState(this.target.states.speedingUp);
-    //   }
-    // },
-    // speedingUp: {
-    //   initialize: function(target) {
-    //     this.target = target;
-    //   },
-    //   execute: function() {
-    //     speedUp();
-    //   },
-    //   initiate: function() {
-    //     this.target.changeState(this.target.states.initiating);
-    //   },
-    //   pause: function() {
-    //     this.target.changeState(this.target.states.pausing);
-    //   },
-    //   drop: function() {
-    //     this.target.changeState(this.target.states.dropping);
-    //   },
-    //   moveLeft: function() {
-    //     this.target.changeState(this.target.states.movingLeft);
-    //   },
-    //   moveRight: function() {
-    //     this.target.changeState(this.target.states.movingRight);
-    //   },
-    //   moveDown: function() {
-    //     this.target.changeState(this.target.states.movingDown);
-    //   },
-    //   rotateClockWise: function() {
-    //     this.target.changeState(this.target.states.rotatingClockWise);
-    //   },
-    //   rotateCounterClock: function() {
-    //     this.target.changeState(this.target.states.rotatingCounterClock);
-    //   },
-    //   speedUp: function() {
-    //   }
-    // }
   },
+  // initialize the state objects
   initialize: function() {
     this.states.initiating.initialize(this);
     this.states.starting.initialize(this);
@@ -589,6 +87,7 @@ let game = {
     this.states.speedingUp.initialize(this);
     this.state = this.states.initiating;
   },
+  // All game actions.
   initiate: function() {
     this.state.initiate();
   },
@@ -619,7 +118,6 @@ let game = {
   speedUp: function() {
     this.state.speedUp();
   },
-  // this not working as all the states are now the same state! (copies of generic state....)
   changeState: function(state) {
     if (this.state !== state) {
       this.state = state;
@@ -627,14 +125,166 @@ let game = {
     }
   }
 }
-
 // for stopping setInterval()
 let interval;
 // initialize game object.
 game.initialize();
-// initiate game state.
+// Game entry point, initiates game state.
 initiateGame();
 
+// Game state objects =========================================================
+// Generic state object has all state methods, allowing
+// all the concrete states objects to override only the
+// methods that they need to customize and inherit the rest.
+function GenericState() {
+  this.initialize = function(target) {
+    this.target = target;
+  }
+  // this method will be shadowed by all concrete state objects.
+  this.execute = function() {
+  }
+  this.initiate = function() {
+    this.target.changeState(this.target.states.initiating);
+  }
+  this.start = function() {
+    this.target.changeState(this.target.states.starting);    
+  }
+  this.pause = function() {
+    this.target.changeState(this.target.states.pausing);
+  }
+  this.drop = function() {
+    this.target.changeState(this.target.states.dropping);    
+  }
+  this.moveLeft = function() {
+    this.target.changeState(this.target.states.movingLeft);
+  }
+  this.moveRight = function() {
+    this.target.changeState(this.target.states.movingRight);
+  }
+  this.moveDown = function() {
+    this.target.changeState(this.target.states.movingDown);
+  }
+  this.rotateClockWise = function() {
+    this.target.changeState(this.target.states.rotatingClockWise);
+  }
+  this.rotateCounterClock = function() {
+    this.target.changeState(this.target.states.rotatingCounterClock);
+  }
+  this.speedUp = function() {
+    this.target.changeState(this.target.states.speedingUp);
+  }
+}
+// Concrete State objects.=====================================================
+// TODO refactor to use classes syntax.
+function Initiating() {
+  GenericState.call(this);
+  this.execute = function() {
+    initiateGame();
+  }
+}
+Initiating.prototype = Object.create(GenericState.prototype);
+Initiating.prototype.constructor = Initiating;
+
+function Starting() {
+  GenericState.call(this);
+  this.execute = function() {
+    startGame();
+  }
+}
+Starting.prototype = Object.create(GenericState.prototype);
+Starting.prototype.constructor = Starting;
+
+function Pausing() {
+  GenericState.call(this);
+  this.execute = function() {
+    pauseGame();
+  }
+}
+Pausing.prototype = Object.create(GenericState.prototype);
+Pausing.prototype.constructor = Pausing;
+
+function Dropping() {
+  GenericState.call(this);
+  this.execute = function() {
+    drop();
+  }
+  this.drop = function() {
+    drop();
+  }
+}
+Dropping.prototype = Object.create(GenericState.prototype);
+Dropping.prototype.constructor = Dropping;
+
+function MovingLeft() {
+  GenericState.call(this);
+  this.execute = function() {
+    moveLeft();
+  }
+  this.moveLeft = function() {
+    moveLeft();
+  }
+}
+MovingLeft.prototype = Object.create(GenericState.prototype);
+MovingLeft.prototype.constructor = MovingLeft;
+
+function MovingRight() {
+  GenericState.call(this);
+  this.execute = function() {
+    moveRight();
+  }
+  this.moveRight = function() {
+    moveRight();
+  }
+}
+MovingRight.prototype = Object.create(GenericState.prototype);
+MovingRight.prototype.constructor = MovingRight;
+
+function MovingDown() {
+  GenericState.call(this);
+  this.execute = function() {
+    moveDown();
+  }
+  this.moveDown = function() {
+    moveDown();
+  }
+}
+MovingDown.prototype = Object.create(GenericState.prototype);
+MovingDown.prototype.constructor = MovingDown;
+
+function RotatingClockWise() {
+  GenericState.call(this);
+  this.execute = function() {
+    rotateClockWise();
+  }
+  this.rotateClockWise = function() {
+    rotateClockWise();
+  }
+}
+RotatingClockWise.prototype = Object.create(GenericState.prototype);
+RotatingClockWise.prototype.constructor = RotatingClockWise;
+
+function RotatingCounterClock() {
+  GenericState.call(this);
+  this.execute = function() {
+    rotateCounterClockwise();
+  }
+  this.rotateCounterClock = function() {
+    rotateCounterClockwise();
+  }
+}
+RotatingCounterClock.prototype = Object.create(GenericState.prototype);
+RotatingCounterClock.prototype.constructor = RotatingCounterClock;
+
+function SpeedingUp() {
+  GenericState.call(this);
+  this.execute = function() {
+    speedUp();
+  }
+}
+SpeedingUp.prototype = Object.create(GenericState.prototype);
+SpeedingUp.prototype.constructor = SpeedingUp;
+
+// Game logic =================================================================
 // initiates the state for a new game.
 function initiateGame() {
   clearInterval(interval);
@@ -648,7 +298,6 @@ function initiateGame() {
   dropInterval = initialGameInterval;
   startButton.textContent = 'Start';
   startButton.onclick = (() => game.start());
-  // resetButton.style.visibility = 'hidden';
   resetButton.style.display = 'none';
   resetButton.onclick = (() => game.initiate());
   render();
@@ -659,7 +308,6 @@ function initiateGame() {
 function startGame() {
   startButton.textContent = 'Pause';
   startButton.onclick = (() => game.pause());
-  // resetButton.style.visibility = 'visible';
   resetButton.style.display = 'inline';
   interval = setInterval(() => game.drop(), dropInterval);
   render();
@@ -715,7 +363,7 @@ function drop() {
   // Adds a shape on first call
   if (!game.theShape) {
     game.theShape = getNextRandomShape();
-    // is exists and possible drops shape one space
+    // is exists and possible, drops the shape one space
   } else if (game.theShape.isSpaceBelow()) {
     game.theShape.moveDown();
   } else {
@@ -734,7 +382,7 @@ function drop() {
   render();
 }
 
-// Returns true is a new shape is either overlapping
+// Returns true if a new shape is either overlapping
 // or is blocked from moving down.
 function isGameOver() {
   let isShapeOverlapping = game.theShape.squares.forEach(
@@ -748,8 +396,8 @@ function endGame() {
   clearInterval(interval);
   ctx.font = '48px serif';
   ctx.fillStyle = 'black'
-  ctx.fillText('Game', 16, 100);
-  ctx.fillText('Over!', 16, 200);
+  ctx.fillText('Game', squareSize, height / 3);
+  ctx.fillText('Over!', squareSize, 2 * height / 3);
 }
 
 // Returns one of the possible 7 shapes. If the first random shape chosen is
@@ -788,7 +436,7 @@ function getShapeWithID(id) {
   }
 }
 
-// Speeds up the game on level change
+// Speeds up the game on level change, called on level change.
 function speedUp() {
   adjustDropInterval();
   clearInterval(interval);
@@ -821,7 +469,7 @@ function removeFullRows() {
   }
 }
 
-// sets dropInterval to official values
+// sets dropInterval to official values in milliseconds
 function adjustDropInterval() {
   switch (currentLevel) {
     case 0:
@@ -910,6 +558,7 @@ function render() {
   game.landedSquares.forEach(s => s.draw());
 }
 
+// The game shapes ============================================================
 // a square
 // x: [0 ... rowLength - 1]
 // y: [0 ... columnLength - 1]
@@ -974,14 +623,14 @@ function Shape() {
   // by rotating the contents of this.squares2D, and mutating the 
   // x and y coords of the shape's squares.                
   this.rotate = function(direction='clockwise') {
-    // make a deep copy to check if rotation is possible
+    // make a deep copy to check if rotation is possible.
     let squares2DClone = JSON.parse(JSON.stringify(this.squares2D)); 
     squares2DClone = getRotated(squares2DClone);   
     if (isSpaceToRotate(squares2DClone)) {
       this.squares2D = getRotated(this.squares2D);
     }
-    // returns shape2D rotated in it's matrix, and
-    // with it's squares mutated to implement the rotation.
+    // returns shape2D rotated in its matrix, and
+    // with its squares mutated to implement the rotation.
     function getRotated(shape2D) {
       // a container of the correct size.
       let rotated = [[,,,],[,,,],[,,,]];
@@ -1046,6 +695,7 @@ function IShape() {
     [this.squares[0], this.squares[1], this.squares[2], this.squares[3]],
     [undefined, undefined, undefined, undefined]    
   ];
+  // TODO: refactor Shape to work with both 2d arrays of length 3 and 4.
   // customized for a 2d array of size 4.
   this.rotate = function(direction='clockwise') {
     // make a deep copy to check if rotation is possible
@@ -1054,8 +704,8 @@ function IShape() {
     if (isSpaceToRotate(squares2DClone)) {
       this.squares2D = getRotated(this.squares2D);
     }
-    // returns shape2D rotated in it's matrix, and
-    // with it's squares mutated to implement the rotation.
+    // returns shape2D rotated in its matrix, and
+    // with its squares mutated to implement the rotation.
     function getRotated(shape2D) {
       // a container of the correct size.
       let rotated = [[,,,,],[,,,,],[,,,,],[,,,,]];
@@ -1153,7 +803,6 @@ function LShape() {
 LShape.prototype = Object.create(Shape.prototype);
 LShape.prototype.constructor = LShape;
 
-
 function JShape() {
   Shape.call(this);
   this.squares = [
@@ -1171,7 +820,6 @@ function JShape() {
 JShape.prototype = Object.create(Shape.prototype);
 JShape.prototype.constructor = JShape;
 
-
 function OShape() {
   Shape.call(this);
   this.squares = [
@@ -1180,19 +828,17 @@ function OShape() {
     new Square(4, 0, 'yellow'),
     new Square(5, 0, 'yellow')
   ];
-  // no need for 2D matrix as rotation is ignored.
-  // rotation does not change this shape
+  // no need for 2D matrix as rotation is ignored for this shape.
   this.rotate = function() {};
 }
 OShape.prototype = Object.create(Shape.prototype);
 OShape.prototype.constructor = OShape;
 
-// return true is no squares in rotated2D share both x and y coords with
-// any landedSquare.
+// return true if no squares in rotated2D share both x and y coords with
+// any landedSquare or is out of bounds.
 function isSpaceToRotate(rotated2D) {
   function hasSpace(sq) {
     let isSpaceFromLanded = game.landedSquares.every(
-      // no landedSquare shares both x and y coords with sq
       ls => !(ls.x === sq.x && ls.y === sq.y)
     );
     let isInBounds = sq.x >= 0 && sq.x < rowLength && sq.y < columnLength - 1;
@@ -1201,7 +847,7 @@ function isSpaceToRotate(rotated2D) {
   return rotated2D.every(a => a.every(s => s ? hasSpace(s) : true));
 }
 
-// User input handler
+// User input handler =========================================================
 function handleKeyDown(e) {
   switch (e.keyCode) {
     case keyJ:
