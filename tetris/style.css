@@ -16,6 +16,10 @@ nav {
   text-align: center;
 }
 
+.initial-level span {
+  padding-right: 1%;
+}
+
 .controls {
-  margin-top: 1%;
+  margin: 1%; 
 }

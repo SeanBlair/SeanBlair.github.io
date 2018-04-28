@@ -28,8 +28,6 @@ const keyF = 70;
 const keyJ = 74;
 const keyK = 75;
 const keyL = 76;
-// Initial update interval in milliseconds
-const initialGameInterval = 800;
 // add listener for user keyboard input
 window.addEventListener('keydown', handleKeyDown);
 // Start/stop button
@@ -40,6 +38,10 @@ const resetButton = document.querySelector('.reset');
 const levelLabel = document.querySelector('.level');
 // For displaying current line count
 const linesLabel = document.querySelector('.lines');
+// For controlling the visibility of the initial level control.
+const initialLevelDiv = document.querySelector('.initial-level');
+// For getting the starting level selected by the user.
+const selectedStartLevel = document.querySelector('select');
 
 // Game variables and classes.=================================================
 // current drop interval
@@ -48,6 +50,8 @@ let dropInterval;
 let lineCount;
 // For storing current level.
 let currentLevel;
+// For storing the user selected start level.
+let initialLevel;
 // For storing previous shape id.
 let previousRandomId;
 
@@ -251,17 +255,29 @@ function initiateGame() {
   clearInterval(interval);
   lineCount = 0;
   currentLevel = 0;
-  previousRandomId = 7;
-  levelLabel.textContent = `Level: ${ currentLevel }`;
-  linesLabel.textContent = `Total Lines: ${ lineCount }`;
+  initialLevel = 0;
+  adjustDropInterval();
+  // No previous shape at start.
+  previousRandomId = -1;
+  levelLabel.style.visibility = 'hidden';
+  linesLabel.style.visibility = 'hidden';
   game.theShape = undefined;
   game.landedSquares = [];
-  dropInterval = initialGameInterval;
   startButton.textContent = 'Start';
   startButton.onclick = (() => game.start());
   resetButton.style.display = 'none';
+  initialLevelDiv.style.visibility = 'visible';
+  selectedStartLevel.value = 0;
+  selectedStartLevel.onchange = (() => changeStartLevel());
   resetButton.onclick = (() => game.initiate());
   render();
+}
+
+// called when user changes the default start level of 0.
+function changeStartLevel() {
+  currentLevel = Number(selectedStartLevel.value);
+  initialLevel = currentLevel;
+  adjustDropInterval();
 }
 
 // Starts setInterval() with current value of updateInterval
@@ -270,6 +286,11 @@ function startGame() {
   startButton.textContent = 'Pause';
   startButton.onclick = (() => game.pause());
   resetButton.style.display = 'inline';
+  initialLevelDiv.style.visibility = 'hidden';
+  levelLabel.textContent = `Level: ${ currentLevel }`;
+  levelLabel.style.visibility = 'visible';
+  linesLabel.textContent = `Total Lines: ${ lineCount }`;
+  linesLabel.style.visibility = 'visible';
   interval = setInterval(() => game.drop(), dropInterval);
   render();
 }
@@ -412,7 +433,7 @@ function removeFullRows() {
     if (squareCountInRow === rowLength) {
       let level;
       lineCount++;
-      level = Math.floor(lineCount / 10);
+      level = Math.floor(lineCount / 10) + initialLevel;
       // Has the level increased?
       if (level > currentLevel) {
         currentLevel = level;
