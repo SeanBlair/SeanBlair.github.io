@@ -1,5 +1,7 @@
-// TODO: Break file into smaller files.
-// TODO: Allow user to start game at any level.
+// TODO: Break file into smaller files. Use es6 modules (import and export keywords), and add
+// script to page with :<script type="module" src="./main.js"></script>.
+
+import * as tStates from './tetris-game-states.js';
 // Game constants =============================================================
 // Pixel length of one tetromino square
 const squareSize = 15;
@@ -55,118 +57,6 @@ let initialLevel;
 // For storing previous shape id.
 let previousRandomId;
 
-// Game state objects =========================================================
-// Generic state object has all state methods, allowing
-// all the concrete states objects to override only the
-// methods that they need to customize and inherit the rest.
-class GenericState {
-  initialize(target) {
-    this.target = target;
-  }
-  // this method will be shadowed by all concrete state objects.
-  execute() {
-  }
-  initiate() {
-    this.target.changeState(this.target.states.initiating);
-  }
-  start() {
-    this.target.changeState(this.target.states.starting);    
-  }
-  pause() {
-    this.target.changeState(this.target.states.pausing);
-  }
-  drop() {
-    this.target.changeState(this.target.states.dropping);    
-  }
-  moveLeft() {
-    this.target.changeState(this.target.states.movingLeft);
-  }
-  moveRight() {
-    this.target.changeState(this.target.states.movingRight);
-  }
-  moveDown() {
-    this.target.changeState(this.target.states.movingDown);
-  }
-  rotateClockWise() {
-    this.target.changeState(this.target.states.rotatingClockWise);
-  }
-  rotateCounterClock() {
-    this.target.changeState(this.target.states.rotatingCounterClock);
-  }
-  speedUp() {
-    this.target.changeState(this.target.states.speedingUp);
-  }
-}
-// Concrete State objects.=====================================================
-class Initiating extends GenericState {
-  execute() {
-    initiateGame();
-  }
-}
-class Starting extends GenericState {
-  execute() {
-    startGame();
-  }
-}
-class Pausing extends GenericState {
-  execute() {
-    pauseGame();
-  }
-}
-class Dropping extends GenericState {
-  execute() {
-    drop();
-  }
-  drop() {
-    drop();
-  }
-}
-class MovingLeft extends GenericState {
-  execute() {
-    moveLeft();
-  }
-  moveLeft() {
-    moveLeft();
-  }
-}
-class MovingRight extends GenericState {
-  execute() {
-    moveRight();
-  }
-  moveRight() {
-    moveRight();
-  }
-}
-class MovingDown extends GenericState {
-  execute() {
-    moveDown();
-  }
-  moveDown() {
-    moveDown();
-  }
-}
-class RotatingClockWise extends GenericState {
-  execute() {
-    rotateClockWise();
-  }
-  rotateClockWise() {
-    rotateClockWise();
-  }
-}
-class RotatingCounterClock extends GenericState {
-  execute() {
-    rotateCounterClockwise();
-  }
-  rotateCounterClock() {
-    rotateCounterClockwise();
-  }
-}
-class SpeedingUp extends GenericState {
-  execute() {
-    speedUp();
-  }
-}
-
 // The game object
 let game = {
   // the current tetromino.
@@ -179,16 +69,16 @@ let game = {
   // user input and the periodic game update interval.
   // all states.
   states: {
-    initiating: new Initiating(),
-    starting: new Starting(),
-    pausing: new Pausing(),
-    dropping: new Dropping(),
-    movingLeft: new MovingLeft(),
-    movingRight: new MovingRight(),
-    movingDown: new MovingDown(),
-    rotatingClockWise: new RotatingClockWise(),
-    rotatingCounterClock: new RotatingCounterClock(),
-    speedingUp: new SpeedingUp()
+    initiating: new tStates.Initiating(initiateGame),
+    starting: new tStates.Starting(startGame),
+    pausing: new tStates.Pausing(pauseGame),
+    dropping: new tStates.Dropping(drop),
+    movingLeft: new tStates.MovingLeft(moveLeft),
+    movingRight: new tStates.MovingRight(moveRight),
+    movingDown: new tStates.MovingDown(moveDown),
+    rotatingClockWise: new tStates.RotatingClockWise(rotateClockWise),
+    rotatingCounterClock: new tStates.RotatingCounterClock(rotateCounterClockwise),
+    speedingUp: new tStates.SpeedingUp(speedUp)
   },
   // initialize the state objects
   initialize: function() {
