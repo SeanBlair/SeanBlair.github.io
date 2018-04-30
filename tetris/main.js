@@ -1,6 +1,8 @@
 import * as tStates from './tetris-game-states.js';
 import * as tShapes from './tetris-shapes.js'
-// Game constants =============================================================
+
+//=================================== Game constants ==========================
+
 // Pixel length of one tetromino square
 const squareSize = 15;
 // Number of squares in one row
@@ -16,12 +18,6 @@ const TOP = 0;
 const width = squareSize * rowLength;
 // game height in pixels
 const height = squareSize * columnLength;
-// Canvas html element
-const canvas = document.querySelector('.canvas');
-canvas.width = width;
-canvas.height = height;
-// object to draw on.
-const ctx = canvas.getContext('2d');
 // Keyboard ids
 const keyD = 68;
 const keyF = 70;
@@ -42,16 +38,23 @@ const linesLabel = document.querySelector('.lines');
 const initialLevelDiv = document.querySelector('.initial-level');
 // For getting the starting level selected by the user.
 const selectedStartLevel = document.querySelector('select');
+// Canvas html element
+const canvas = document.querySelector('.canvas');
+canvas.width = width;
+canvas.height = height;
+// object to draw on.
+const ctx = canvas.getContext('2d');
 
-// Game variables.=============================================================
+//================================== Game variables ===========================
+
 // current drop interval
 let dropInterval;
 // For storing lines finished.
 let lineCount;
-// For storing current level.
-let currentLevel;
 // For storing the user selected start level.
 let initialLevel;
+// For storing current level.
+let currentLevel;
 // For storing previous shape id.
 let previousRandomId;
 
@@ -63,7 +66,7 @@ let game = {
   landedSquares: [],
   // current game state
   state: undefined,
-  // Uses the State pattern to share state with arbitrary
+  // Uses the State Pattern to share state with arbitrary
   // user input and the periodic game update interval.
   // all states.
   states: {
@@ -75,7 +78,7 @@ let game = {
     movingRight: new tStates.MovingRight(moveRight),
     movingDown: new tStates.MovingDown(moveDown),
     rotatingClockWise: new tStates.RotatingClockWise(rotateClockWise),
-    rotatingCounterClock: new tStates.RotatingCounterClock(rotateCounterClockwise),
+    rotatingCounterClock: new tStates.RotatingCounterClock(rotateCounterClockWise),
     speedingUp: new tStates.SpeedingUp(speedUp)
   },
   // initialize the state objects
@@ -133,14 +136,15 @@ let game = {
 }
 // for stopping setInterval()
 let interval;
-// For disabling keypad input when game is over.
+// For disabling keypad input when game is stopped.
 let isGameStopped;
 // initialize game object.
 game.initialize();
-// Game entry point, initiates game state.
+// Game entry point, set initial game state.
 initiateGame();
 
-// Game logic =================================================================
+//======================================= Game logic ==========================
+
 // initiates the state for a new game.
 function initiateGame() {
   clearInterval(interval);
@@ -195,6 +199,8 @@ function pauseGame() {
   clearInterval(interval);
 }
 
+//========================================== Shape movement ===================
+
 // if space on left, moves shape left one space and renders the game;
 function moveLeft() {
   if (game.theShape.squares.every(s => isSpaceOnLeft(s))) {
@@ -230,7 +236,7 @@ function rotateClockWise() {
 }
 
 // If space to rotate counter clockwise, rotates the shape and renders the game
-function rotateCounterClockwise() {
+function rotateCounterClockWise() {
   game.theShape.rotate('counterClockWise');
   if (game.theShape.squares.every(s => isInAvailableSpace(s))) {
     render();
@@ -428,42 +434,6 @@ function removeSquaresInRow(index) {
   game.landedSquares = newLandedArray;
 }
 
-// Refreshes the game image by overwritting previous image
-// and drawing new game.
-function render() {
-  // game area
-  // border
-  ctx.strokeStyle = 'rgb(0, 0, 0)';
-  ctx.strokeRect(LEFT, TOP, width, height);
-  // background
-  ctx.fillStyle = 'rgb(222, 222, 222)';
-  ctx.fillRect(LEFT, TOP, width, height);
-  // The next shape.
-  if (game.theShape) {
-    game.theShape.squares.forEach(s => renderSquare(s));
-  }
-  // the landed squares
-  game.landedSquares.forEach(s => renderSquare(s));
-}
-
-// Renders square on the canvas.
-function renderSquare(square) {
-  ctx.strokeStyle = 'rgb(0,0,0)';
-  ctx.strokeRect(
-    LEFT + square.x * squareSize + 1, 
-    TOP + square.y * squareSize + 1, 
-    squareSize - 1, 
-    squareSize - 1
-  );
-  ctx.fillStyle = square.color;
-  ctx.fillRect(
-    LEFT + square.x * squareSize + 1, 
-    TOP + square.y * squareSize + 1, 
-    squareSize - 1, 
-    squareSize - 1
-  );
-}
-
 // Returns true if there is a space below square.
 function isSpaceBelow(square) {
   let isSpaceFromBottom = square.y < columnLength - 1;
@@ -506,7 +476,7 @@ function isOverlappingLanded(square) {
   );
 }
 
-// User input handler =========================================================
+//============================== User input handler ===========================
 function handleKeyDown(e) {
   if (isGameStopped) {
     return;
@@ -527,4 +497,41 @@ function handleKeyDown(e) {
     case keyD:
     game.rotateCounterClock();
   } 
+}
+//========================================= Rendering =========================
+
+// Refreshes the game image by overwritting previous image
+// and drawing new game.
+function render() {
+  // game area
+  // border
+  ctx.strokeStyle = 'rgb(0, 0, 0)';
+  ctx.strokeRect(LEFT, TOP, width, height);
+  // background
+  ctx.fillStyle = 'rgb(222, 222, 222)';
+  ctx.fillRect(LEFT, TOP, width, height);
+  // The next shape.
+  if (game.theShape) {
+    game.theShape.squares.forEach(s => renderSquare(s));
+  }
+  // the landed squares
+  game.landedSquares.forEach(s => renderSquare(s));
+}
+
+// Renders square on the canvas.
+function renderSquare(square) {
+  ctx.strokeStyle = 'rgb(0,0,0)';
+  ctx.strokeRect(
+    LEFT + square.x * squareSize + 1, 
+    TOP + square.y * squareSize + 1, 
+    squareSize - 1, 
+    squareSize - 1
+  );
+  ctx.fillStyle = square.color;
+  ctx.fillRect(
+    LEFT + square.x * squareSize + 1, 
+    TOP + square.y * squareSize + 1, 
+    squareSize - 1, 
+    squareSize - 1
+  );
 }

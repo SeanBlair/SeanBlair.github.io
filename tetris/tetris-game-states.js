@@ -1,3 +1,4 @@
+// For defining all the generic actions that all states support.
 class GenericState {
   constructor(executeFunction) {
     this.execute = executeFunction;
@@ -36,7 +37,9 @@ class GenericState {
     this.target.changeState(this.target.states.speedingUp);
   }
 }
-// Concrete State objects.=====================================================
+
+//===================================== Concrete State Classes.================
+// These all set their own execute() function and shadow their own action.
 export class Initiating extends GenericState {
   constructor(executeFunction) {
     super(executeFunction);

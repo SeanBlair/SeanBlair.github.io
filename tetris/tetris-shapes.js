@@ -72,6 +72,8 @@ class Shape {
     }
   };
 }
+// ================================ Tetris Shapes =============================
+// Their colors and initial positions are set following official tetris rules.
 
 export class IShape extends Shape {
   constructor() {
