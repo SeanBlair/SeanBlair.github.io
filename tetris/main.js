@@ -1,7 +1,5 @@
-// TODO: Break file into smaller files. Use es6 modules (import and export keywords), and add
-// script to page with :<script type="module" src="./main.js"></script>.
-
 import * as tStates from './tetris-game-states.js';
+import * as tShapes from './tetris-shapes.js'
 // Game constants =============================================================
 // Pixel length of one tetromino square
 const squareSize = 15;
@@ -45,7 +43,7 @@ const initialLevelDiv = document.querySelector('.initial-level');
 // For getting the starting level selected by the user.
 const selectedStartLevel = document.querySelector('select');
 
-// Game variables and classes.=================================================
+// Game variables.=============================================================
 // current drop interval
 let dropInterval;
 // For storing lines finished.
@@ -92,6 +90,7 @@ let game = {
     this.states.rotatingClockWise.initialize(this);
     this.states.rotatingCounterClock.initialize(this);
     this.states.speedingUp.initialize(this);
+    // Set initial state
     this.state = this.states.initiating;
   },
   // All game actions.
@@ -198,7 +197,7 @@ function pauseGame() {
 
 // if space on left, moves shape left one space and renders the game;
 function moveLeft() {
-  if (game.theShape.isSpaceOnLeft()) {
+  if (game.theShape.squares.every(s => isSpaceOnLeft(s))) {
     game.theShape.moveLeft();
     render();
   }
@@ -206,7 +205,7 @@ function moveLeft() {
 
 // if space on right, moves shape right one space and renders the game;
 function moveRight() {
-  if (game.theShape.isSpaceOnRight()) {
+  if (game.theShape.squares.every(s => isSpaceOnRight(s))) {
     game.theShape.moveRight();
     render();
   }
@@ -214,22 +213,30 @@ function moveRight() {
 
 // if space below, moves shape down one space and renders the game;
 function moveDown() {
-  if (game.theShape.isSpaceBelow()) {
+  if (game.theShape.squares.every(s => isSpaceBelow(s))) {
     game.theShape.moveDown();
     render();
   }
 }
 
-// If space to rotate clockwise, rotates the shape. Renders the game
+// If space to rotate clockwise, rotates the shape and renders the game.
 function rotateClockWise() {
-  game.theShape.rotate('clockwise');
-  render();
+  game.theShape.rotate('clockWise');
+  if (game.theShape.squares.every(s => isInAvailableSpace(s))) {
+    render();
+  } else {
+    game.theShape.rotate('counterClockWise');
+  }
 }
 
-// If space to rotate counter clockwise, rotates the shape. Renders the game
+// If space to rotate counter clockwise, rotates the shape and renders the game
 function rotateCounterClockwise() {
   game.theShape.rotate('counterClockWise');
-  render();
+  if (game.theShape.squares.every(s => isInAvailableSpace(s))) {
+    render();
+  } else {
+    game.theShape.rotate('clockWise');
+  }
 }
 
 // Lowers the shape one squareSize if possible
@@ -240,7 +247,7 @@ function drop() {
   if (!game.theShape) {
     game.theShape = getNextRandomShape();
     // is exists and possible, drops the shape one space
-  } else if (game.theShape.isSpaceBelow()) {
+  } else if (game.theShape.squares.every(s => isSpaceBelow(s))) {
     game.theShape.moveDown();
   } else {
     // Appends the landed shape's squares to the landedSquares array
@@ -261,10 +268,13 @@ function drop() {
 // Returns true if a new shape is either overlapping
 // or is blocked from moving down.
 function isGameOver() {
-  let isShapeOverlapping = game.theShape.squares.forEach(
-    sq => game.landedSquares.some(s => s.x === sq.x && s.y === sq.y)
+  let isShapeOverlapping = game.theShape.squares.some(
+    s => isOverlappingLanded(s)
   );
-  return isShapeOverlapping || !game.theShape.isSpaceBelow();
+  let isBlockedBelow = game.theShape.squares.some(
+    s => !isSpaceBelow(s)
+  );
+  return isShapeOverlapping || isBlockedBelow;
 }
 
 // Stops the game showing a Game Over! notification.
@@ -297,23 +307,23 @@ function getNextRandomShape() {
 function getShapeWithID(id) {
   switch (id) {
     case 0:
-    return new TShape();
+    return new tShapes.TShape();
     case 1:
-    return new OShape();
+    return new tShapes.OShape();
     case 2: 
-    return new SShape();
+    return new tShapes.SShape();
     case 3:
-    return new ZShape();
+    return new tShapes.ZShape();
     case 4:
-    return new LShape();
+    return new tShapes.LShape();
     case 5:
-    return new JShape();
+    return new tShapes.JShape();
     case 6:
-    return new IShape();
+    return new tShapes.IShape();
   }
 }
 
-// Speeds up the game on level change, called on level change.
+// Speeds up the game, called on level change.
 function speedUp() {
   adjustDropInterval();
   clearInterval(interval);
@@ -321,6 +331,7 @@ function speedUp() {
 }
 
 // Removes any full rows and then drops any squares above them.
+// Updates line count, level and game speed if necessary.
 function removeFullRows() {
   for (let i = columnLength - 1; i >= 0; i--) {
     let squareCountInRow = getSquareCountInRow(i);
@@ -346,7 +357,7 @@ function removeFullRows() {
   }
 }
 
-// sets dropInterval to official values in milliseconds
+// sets dropInterval to official tetris game values in milliseconds
 function adjustDropInterval() {
   switch (currentLevel) {
     case 0:
@@ -429,277 +440,70 @@ function render() {
   ctx.fillRect(LEFT, TOP, width, height);
   // The next shape.
   if (game.theShape) {
-    game.theShape.draw();
+    game.theShape.squares.forEach(s => renderSquare(s));
   }
   // the landed squares
-  game.landedSquares.forEach(s => s.draw());
+  game.landedSquares.forEach(s => renderSquare(s));
 }
 
-// The game shapes ============================================================
-// a square
-// x: [0 ... rowLength - 1]
-// y: [0 ... columnLength - 1]
-// color: any css color.
-class Square {
-  constructor(x, y, color) {
-    this.x = x;
-    this.y = y;
-    this.color = color;
-  }
-  draw() {
-    ctx.strokeStyle = 'rgb(0,0,0)';
-    ctx.strokeRect(
-      LEFT + this.x * squareSize + 1, 
-      TOP + this.y * squareSize + 1, 
-      squareSize - 1, 
-      squareSize - 1
-    );
-    ctx.fillStyle = this.color;
-    ctx.fillRect(
-      LEFT + this.x * squareSize + 1, 
-      TOP + this.y * squareSize + 1, 
-      squareSize - 1, 
-      squareSize - 1
-    );
-  }
-  moveLeft() {
-    this.x--;
-  }
-  moveRight() {
-    this.x++;
-  }
-  moveDown() {
-    this.y++;
-  }
-  canMoveLeft() {
-    let isSquareOnLeft = game.landedSquares.some(
-      s => s.y === this.y && s.x === this.x - 1
-    );
-    let isAtLeftBorder = this.x === 0;
-    return !isSquareOnLeft && !isAtLeftBorder;
-  }
-  canMoveRight() {
-    let isSquareOnRight = game.landedSquares.some(
-      s => s.y === this.y && s.x === this.x + 1
-    );
-    let isAtRightBorder = this.x === rowLength - 1;
-    return !isSquareOnRight && !isAtRightBorder;
-  }
-  canMoveDown() {
-    let isSquareBellow = game.landedSquares.some(
-      s => s.x === this.x && s.y === this.y + 1
-    );
-    let isAtBottom = this.y === columnLength - 1;
-    return !isSquareBellow && !isAtBottom;
-  }
+// Renders square on the canvas.
+function renderSquare(square) {
+  ctx.strokeStyle = 'rgb(0,0,0)';
+  ctx.strokeRect(
+    LEFT + square.x * squareSize + 1, 
+    TOP + square.y * squareSize + 1, 
+    squareSize - 1, 
+    squareSize - 1
+  );
+  ctx.fillStyle = square.color;
+  ctx.fillRect(
+    LEFT + square.x * squareSize + 1, 
+    TOP + square.y * squareSize + 1, 
+    squareSize - 1, 
+    squareSize - 1
+  );
 }
 
-// A generic tetris tetromino shape.
-class Shape {
-  constructor(squares, squares2D) {
-    this.squares = squares;
-    this.squares2D = squares2D;
-  }
-  // If there is space to rotate 90 degrees, rotates this shape 
-  // by rotating the contents of this.squares2D, and mutating the 
-  // x and y coords of this.squares.                
-  rotate(direction='clockwise') {
-    // make a deep copy to check if rotation is possible.
-    let squares2DClone = JSON.parse(JSON.stringify(this.squares2D)); 
-    squares2DClone = rotate(squares2DClone);   
-    if (isSpaceToRotate(squares2DClone)) {
-      this.squares2D = rotate(this.squares2D);
-    }
-    // returns shape2D rotated in its matrix, and
-    // with its squares mutated to implement the rotation.
-    function rotate(shape2D) {
-      let rotated = getEmpty2DArray();
-      for (let i = 0; i < shape2D.length; i++) {
-        for (let j = 0; j < shape2D.length; j++) {
-          // current square to move
-          let sq = shape2D[i][j];
-          // Mutate the squares x and y coords to rotate the entire shape
-          // Place the mutated square in corresponding place in new matrix.
-          if (direction === 'clockwise') {
-            if (sq) {
-              sq.x += shape2D.length - j - i - 1;
-              sq.y += j - i;
-            }
-            rotated[j][shape2D.length - i - 1] = sq;
-          } else if (direction === 'counterClockWise') {
-            if (sq) {
-              sq.x += 0 - j + i;
-              sq.y += shape2D.length - (j + i) - 1;
-            }
-            rotated[shape2D.length - j - 1][0 + i] = sq;
-          }
-        }
-      }
-      return rotated;
-      // Returns a 2D array of the correct size.
-      function getEmpty2DArray() {
-        let outer = [];
-        for (let i = 0; i < shape2D.length; i++) {
-          let inner = [];
-          outer[i] = inner;
-        }
-        return outer;
-      }
-    }
-    // returns true if no squares in rotated2D share both x and y coords with
-    // any landedSquare or is out of bounds.
-    function isSpaceToRotate(rotated2D) {
-      return rotated2D.every(a => a.every(s => s ? hasSpace(s) : true));
-      // returns true if sq is not overlapping any landed square or out of bounds
-      function hasSpace(sq) {
-        let isSpaceFromLanded = game.landedSquares.every(
-          ls => !(ls.x === sq.x && ls.y === sq.y)
-        );
-        let isInBounds = sq.x >= 0 && sq.x < rowLength && sq.y < columnLength - 1;
-        return isSpaceFromLanded && isInBounds;
-      }
-    }
-  }
-  draw() {
-    this.squares.forEach(s => s.draw());
-  }
-  moveLeft() {
-    this.squares.forEach(s => s.moveLeft());
-  }
-  moveRight() {
-    this.squares.forEach(s => s.moveRight());
-  }
-  moveDown() {
-    this.squares.forEach(s => s.moveDown());
-  }
-  isSpaceOnLeft() {
-    return this.squares.every(s => s.canMoveLeft());
-  }
-  isSpaceOnRight() {
-    return this.squares.every(s => s.canMoveRight());
-  }
-  isSpaceBelow() {
-    return this.squares.every(s => s.canMoveDown());
-  }
+// Returns true if there is a space below square.
+function isSpaceBelow(square) {
+  let isSpaceFromBottom = square.y < columnLength - 1;
+  let isSpaceFromLanded = game.landedSquares.every(
+    s => s.x !== square.x || s.y !== square.y + 1
+  );
+  return isSpaceFromBottom && isSpaceFromLanded;
 }
 
-// Concrete shapes ============================================================
-class IShape extends Shape {
-  constructor() {
-    let squares = [
-      new Square(3, 0, 'cyan'),
-      new Square(4, 0, 'cyan'),
-      new Square(5, 0, 'cyan'),
-      new Square(6, 0, 'cyan')
-    ];
-    let squares2D = [
-      [undefined, undefined, undefined, undefined],
-      [undefined, undefined, undefined, undefined],
-      [squares[0], squares[1], squares[2], squares[3]],
-      [undefined, undefined, undefined, undefined]    
-    ]
-    super(squares, squares2D);
-  }
+// Returns true if there is space on left of square.
+function isSpaceOnLeft(square) {
+  let isSpaceFromLeftBorder = square.x > 0;
+  let isSpaceFromLanded = game.landedSquares.every(
+    s => s.x !== square.x - 1 || s.y !== square.y
+  );
+  return isSpaceFromLeftBorder && isSpaceFromLanded;
 }
 
-class TShape extends Shape {
-  constructor() {
-    let squares = [
-      new Square(4, -1, '#b300b3'),
-      new Square(3, 0, '#b300b3'),
-      new Square(4, 0, '#b300b3'),
-      new Square(5, 0, '#b300b3')
-    ];
-    let squares2D = [
-      [undefined, squares[0], undefined],
-      [squares[1], squares[2], squares[3]],
-      [undefined, undefined, undefined]
-    ]
-    super(squares, squares2D);
-  }
+// Returns true if there is space on right of square.
+function isSpaceOnRight(square) {
+  let isSpaceFromRightBorder = square.x < rowLength - 1;
+  let isSpaceFromLanded = game.landedSquares.every(
+    s => s.x !== square.x + 1 || s.y !== square.y
+  );
+  return isSpaceFromRightBorder && isSpaceFromLanded;
 }
 
-class SShape extends Shape {
-  constructor() {
-    let squares = [
-      new Square(4, -1, '#00b300'),
-      new Square(5, -1, '#00b300'),
-      new Square(3, 0, '#00b300'),
-      new Square(4, 0, '#00b300')
-    ];
-    let squares2D = [
-      [undefined, squares[0],  squares[1]],
-      [squares[2], squares[3], undefined],
-      [undefined, undefined, undefined]
-    ];
-    super(squares, squares2D);
-  }
+// Returns true if square is in bounds and not in the same space 
+// as a landed square. Used to verify if a shape rotation is valid.
+function isInAvailableSpace(square) {
+  let isInBounds = 
+  square.x >= 0 && square.x < rowLength - 1 && square.y < columnLength - 1;
+  return isInBounds && !isOverlappingLanded(square);
 }
 
-class ZShape extends Shape {
-  constructor() {
-    let squares = [
-      new Square(3, -1, '#ff6666'),
-      new Square(4, -1, '#ff6666'),
-      new Square(4, 0, '#ff6666'),
-      new Square(5, 0, '#ff6666')
-    ];
-    let squares2D = [
-      [squares[0], squares[1], undefined],
-      [undefined, squares[2], squares[3]],
-      [undefined, undefined, undefined]
-    ];
-    super(squares, squares2D);
-  }
-}
-
-class LShape extends Shape {
-  constructor() {
-    let squares = [
-      new Square(5, -1, 'orange'),
-      new Square(3, 0, 'orange'),
-      new Square(4, 0, 'orange'),
-      new Square(5, 0, 'orange')
-    ];
-    let squares2D = [
-      [undefined, undefined, squares[0]],
-      [squares[1], squares[2], squares[3]],
-      [undefined, undefined, undefined]
-    ];
-    super(squares, squares2D);
-  }
-}
-
-class JShape extends Shape {
-  constructor() {
-    let squares = [
-      new Square(3, -1, '#6666ff'),
-      new Square(3, 0, '#6666ff'),
-      new Square(4, 0, '#6666ff'),
-      new Square(5, 0, '#6666ff')
-    ];
-    let squares2D = [
-      [squares[0], undefined, undefined],
-      [squares[1], squares[2], squares[3]],
-      [undefined, undefined, undefined]
-    ];
-    super(squares, squares2D);
-  }
-}
-
-class OShape extends Shape {
-  constructor() {
-    let squares = [
-      new Square(4, -1, 'yellow'),
-      new Square(5, -1, 'yellow'),
-      new Square(4, 0, 'yellow'),
-      new Square(5, 0, 'yellow')
-    ];
-    // no need for 2D matrix as rotation is ignored for this shape.
-    super(squares, [[]]);
-  }
-  // shadow rotate with empy body to avoid rotation computation.
-  rotate() {};
+// Returns true if square is in the same location as any landed square.
+function isOverlappingLanded(square) {
+  return game.landedSquares.some(
+    s => s.x === square.x && s.y === square.y
+  );
 }
 
 // User input handler =========================================================
