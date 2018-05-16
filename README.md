@@ -4,7 +4,7 @@ A classic tetris game created with ES6 JavaScript.
 
 ## Requirements
 
-To run the game locally requires an HTTP server such as Node.js's http-server application. Use a recent version of the Chrome brower to access the page.
+To run the game locally requires an HTTP server such as Node.js's http-server application. Use a recent version of the Chrome browser to access the page.
 
 ## Install
 
