@@ -314,6 +314,43 @@ function moveShape(move) {
 }
 
 function getOptimalMoves(shape, landedSquares) {
+  // make sure to clone shape to determine the best path.
+  let paths = [];
+  function Path() {
+    return {
+      moves: [],
+      score: -1
+    };
+  }
+  // there will be no rotation, one rotation, two rotations, three rotations.
+  // for each there will be left-most, right-most and all in between.
+  // each of these will receive a score.
+  // To determine score, move down until land, then count # of completed lines
+  // determine number of spaces covered, determine shape height.
+
+  // First set array of path objects with their starting position (set their moves array)
+  // Make a copy of the shape object. Add the initial to the array (with empty moves)
+  // while (canMoveLeft) {
+  //    moveLeft
+  //    add to paths array.
+  //}
+  // while (canMoveRight) {
+  //    moveRight
+  //    add to paths array.
+  //  }
+
+  // if can rotate once -> rotate and repeat previous.
+  // if can rotate twice -> rotate and repeat previous.
+  // if can rotate thrice -> rotate and repeat previous.
+
+  // after this, all initial path objects will be initiated with their starting positions
+  // (paths set).
+  // for each path
+  // Find resting place. Set score.
+
+  // iterate through all paths finding the one with highest score.
+  // return path with highest score.
+  // hardcoded path.
   return [
     "rotateClock",
     "rotateClock",
