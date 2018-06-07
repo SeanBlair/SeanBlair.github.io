@@ -277,6 +277,11 @@ function drop() {
     removeFullRows();
     // adds new shape to game
     game.theShape = getNextRandomShape();
+    if (isAutoPlay) {
+      // Todo, make sure this is asynchronous, to allow not interfere
+      // with the current dropping interval.
+      moveShapeToOptimalLocation();
+    }
     if (isGameOver()) {
       // show last shape
       render();
@@ -285,6 +290,38 @@ function drop() {
     }
   }
   render();
+}
+
+function moveShapeToOptimalLocation() {
+  const optimalMoves = getOptimalMoves(game.theShape, game.landedSquares);
+  optimalMoves.forEach(move => {
+    moveShape(move);
+  });
+}
+
+function moveShape(move) {
+  switch (move) {
+    case "rotateClock":
+      game.rotateClockWise();
+      break;
+    case "left":
+      game.moveLeft();
+      break;
+    case "right":
+      game.moveRight();
+      break;
+  }
+}
+
+function getOptimalMoves(shape, landedSquares) {
+  return [
+    "rotateClock",
+    "rotateClock",
+    "rotateClock",
+    "right",
+    "right",
+    "right"
+  ];
 }
 
 // Returns true if a new shape is either overlapping
