@@ -1,5 +1,5 @@
-import * as tStates from './tetris-game-states.js';
-import * as tShapes from './tetris-shapes.js'
+import * as tStates from "./tetris-game-states.js";
+import * as tShapes from "./tetris-shapes.js";
 
 //=================================== Game constants ==========================
 
@@ -25,25 +25,27 @@ const keyJ = 74;
 const keyK = 75;
 const keyL = 76;
 // add listener for user keyboard input
-window.addEventListener('keydown', handleKeyDown);
+window.addEventListener("keydown", handleKeyDown);
 // Start/stop button
-const startButton = document.querySelector('.start');
+const startButton = document.querySelector(".start");
 // Reset button
-const resetButton = document.querySelector('.reset');
+const resetButton = document.querySelector(".reset");
+// Auto play toggle button
+const autoPlayButton = document.querySelector(".auto-play");
 // For displaying current game level
-const levelLabel = document.querySelector('.level');
+const levelLabel = document.querySelector(".level");
 // For displaying current line count
-const linesLabel = document.querySelector('.lines');
+const linesLabel = document.querySelector(".lines");
 // For controlling the visibility of the initial level control.
-const initialLevelDiv = document.querySelector('.initial-level');
+const initialLevelDiv = document.querySelector(".initial-level");
 // For getting the starting level selected by the user.
-const selectedStartLevel = document.querySelector('select');
+const selectedStartLevel = document.querySelector("select");
 // Canvas html element
-const canvas = document.querySelector('.canvas');
+const canvas = document.querySelector(".canvas");
 canvas.width = width;
 canvas.height = height;
 // object to draw on.
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext("2d");
 
 //================================== Game variables ===========================
 
@@ -78,7 +80,9 @@ let game = {
     movingRight: new tStates.MovingRight(moveRight),
     movingDown: new tStates.MovingDown(moveDown),
     rotatingClockWise: new tStates.RotatingClockWise(rotateClockWise),
-    rotatingCounterClock: new tStates.RotatingCounterClock(rotateCounterClockWise),
+    rotatingCounterClock: new tStates.RotatingCounterClock(
+      rotateCounterClockWise
+    ),
     speedingUp: new tStates.SpeedingUp(speedUp)
   },
   // initialize the state objects
@@ -133,11 +137,15 @@ let game = {
       this.state.execute();
     }
   }
-}
+};
 // for stopping setInterval()
 let interval;
 // For disabling keypad input when game is stopped.
 let isGameStopped;
+// For auto play flag
+let isAutoPlay = false;
+autoPlayButton.onclick = toggleAutoPlay;
+
 // initialize game object.
 game.initialize();
 // Game entry point, set initial game state.
@@ -154,17 +162,17 @@ function initiateGame() {
   adjustDropInterval();
   // No previous shape at start.
   previousRandomId = -1;
-  levelLabel.style.visibility = 'hidden';
-  linesLabel.style.visibility = 'hidden';
+  levelLabel.style.visibility = "hidden";
+  linesLabel.style.visibility = "hidden";
   game.theShape = undefined;
   game.landedSquares = [];
-  startButton.textContent = 'Start';
-  startButton.onclick = (() => game.start());
-  resetButton.style.display = 'none';
-  initialLevelDiv.style.visibility = 'visible';
+  startButton.textContent = "Start";
+  startButton.onclick = () => game.start();
+  resetButton.style.display = "none";
+  initialLevelDiv.style.visibility = "visible";
   selectedStartLevel.value = 0;
-  selectedStartLevel.onchange = (() => changeStartLevel());
-  resetButton.onclick = (() => game.initiate());
+  selectedStartLevel.onchange = () => changeStartLevel();
+  resetButton.onclick = () => game.initiate();
   render();
 }
 
@@ -179,14 +187,14 @@ function changeStartLevel() {
 // and changes start button to pause button.
 function startGame() {
   isGameStopped = false;
-  startButton.textContent = 'Pause';
-  startButton.onclick = (() => game.pause());
-  resetButton.style.display = 'inline';
-  initialLevelDiv.style.visibility = 'hidden';
-  levelLabel.textContent = `Level: ${ currentLevel }`;
-  levelLabel.style.visibility = 'visible';
-  linesLabel.textContent = `Total Lines: ${ lineCount }`;
-  linesLabel.style.visibility = 'visible';
+  startButton.textContent = "Pause";
+  startButton.onclick = () => game.pause();
+  resetButton.style.display = "inline";
+  initialLevelDiv.style.visibility = "hidden";
+  levelLabel.textContent = `Level: ${currentLevel}`;
+  levelLabel.style.visibility = "visible";
+  linesLabel.textContent = `Total Lines: ${lineCount}`;
+  linesLabel.style.visibility = "visible";
   interval = setInterval(() => game.drop(), dropInterval);
   render();
 }
@@ -194,9 +202,17 @@ function startGame() {
 // pauses the game by stopping the setInterval()
 function pauseGame() {
   isGameStopped = true;
-  startButton.textContent = 'Continue';
-  startButton.onclick = (() => game.start());
+  startButton.textContent = "Continue";
+  startButton.onclick = () => game.start();
   clearInterval(interval);
+}
+
+// Toggles the autoplay global flag and the autoPlay button's text.
+function toggleAutoPlay() {
+  isAutoPlay = !isAutoPlay;
+  autoPlayButton.textContent = isAutoPlay
+    ? "Stop Auto Play"
+    : "Start Auto Play";
 }
 
 //========================================== Shape movement ===================
@@ -227,21 +243,21 @@ function moveDown() {
 
 // If space to rotate clockwise, rotates the shape and renders the game.
 function rotateClockWise() {
-  game.theShape.rotate('clockWise');
+  game.theShape.rotate("clockWise");
   if (game.theShape.squares.every(s => isInAvailableSpace(s))) {
     render();
   } else {
-    game.theShape.rotate('counterClockWise');
+    game.theShape.rotate("counterClockWise");
   }
 }
 
 // If space to rotate counter clockwise, rotates the shape and renders the game
 function rotateCounterClockWise() {
-  game.theShape.rotate('counterClockWise');
+  game.theShape.rotate("counterClockWise");
   if (game.theShape.squares.every(s => isInAvailableSpace(s))) {
     render();
   } else {
-    game.theShape.rotate('clockWise');
+    game.theShape.rotate("clockWise");
   }
 }
 
@@ -274,12 +290,10 @@ function drop() {
 // Returns true if a new shape is either overlapping
 // or is blocked from moving down.
 function isGameOver() {
-  let isShapeOverlapping = game.theShape.squares.some(
-    s => isOverlappingLanded(s)
+  let isShapeOverlapping = game.theShape.squares.some(s =>
+    isOverlappingLanded(s)
   );
-  let isBlockedBelow = game.theShape.squares.some(
-    s => !isSpaceBelow(s)
-  );
+  let isBlockedBelow = game.theShape.squares.some(s => !isSpaceBelow(s));
   return isShapeOverlapping || isBlockedBelow;
 }
 
@@ -287,15 +301,15 @@ function isGameOver() {
 function endGame() {
   isGameStopped = true;
   clearInterval(interval);
-  ctx.font = '48px serif';
-  ctx.fillStyle = 'black'
-  ctx.fillText('Game', squareSize, height / 3);
-  ctx.fillText('Over!', squareSize, 2 * height / 3);
+  ctx.font = "48px serif";
+  ctx.fillStyle = "black";
+  ctx.fillText("Game", squareSize, height / 3);
+  ctx.fillText("Over!", squareSize, (2 * height) / 3);
 }
 
 // Returns one of the possible 7 shapes. If the first random shape chosen is
 // not equal to the previous game shape, it is returned. Otherwise, a second
-// random shape is chosen and returned regardless if equal to previous. 
+// random shape is chosen and returned regardless if equal to previous.
 function getNextRandomShape() {
   // random number from 0 - 6
   let intInRange0to6 = Math.floor(Math.random() * 7);
@@ -313,19 +327,19 @@ function getNextRandomShape() {
 function getShapeWithID(id) {
   switch (id) {
     case 0:
-    return new tShapes.TShape();
+      return new tShapes.TShape();
     case 1:
-    return new tShapes.OShape();
-    case 2: 
-    return new tShapes.SShape();
+      return new tShapes.OShape();
+    case 2:
+      return new tShapes.SShape();
     case 3:
-    return new tShapes.ZShape();
+      return new tShapes.ZShape();
     case 4:
-    return new tShapes.LShape();
+      return new tShapes.LShape();
     case 5:
-    return new tShapes.JShape();
+      return new tShapes.JShape();
     case 6:
-    return new tShapes.IShape();
+      return new tShapes.IShape();
   }
 }
 
@@ -349,13 +363,15 @@ function removeFullRows() {
       // Has the level increased?
       if (level > currentLevel) {
         currentLevel = level;
-        levelLabel.textContent = `Level: ${ level }`;
+        levelLabel.textContent = `Level: ${level}`;
         game.speedUp();
       }
       linesLabel.textContent = `Total Lines: ${lineCount}`;
       removeSquaresInRow(i);
       // Drops squares above this row
-      game.landedSquares.forEach(s => { if (s.y < i) s.y++});
+      game.landedSquares.forEach(s => {
+        if (s.y < i) s.y++;
+      });
       // Recursive call, ends when no full rows exist.
       removeFullRows();
       break;
@@ -367,59 +383,60 @@ function removeFullRows() {
 function adjustDropInterval() {
   switch (currentLevel) {
     case 0:
-    dropInterval = 800;
-    break;
+      dropInterval = 800;
+      break;
     case 1:
-    dropInterval = 720;
-    break;
+      dropInterval = 720;
+      break;
     case 2:
-    dropInterval = 630;
-    break;
+      dropInterval = 630;
+      break;
     case 3:
-    dropInterval = 550;
-    break;
+      dropInterval = 550;
+      break;
     case 4:
-    dropInterval = 470;
-    break;
+      dropInterval = 470;
+      break;
     case 5:
-    dropInterval = 380;
-    break;
+      dropInterval = 380;
+      break;
     case 6:
-    dropInterval = 300;
-    break;
+      dropInterval = 300;
+      break;
     case 7:
-    dropInterval = 220;
-    break;
+      dropInterval = 220;
+      break;
     case 8:
-    dropInterval = 130;
-    break;
+      dropInterval = 130;
+      break;
     case 9:
-    dropInterval = 100;
-    break;
+      dropInterval = 100;
+      break;
     case 10:
     case 11:
     case 12:
-    dropInterval = 80;
-    break;
+      dropInterval = 80;
+      break;
     case 13:
     case 14:
     case 15:
-    dropInterval = 70;
-    break;
+      dropInterval = 70;
+      break;
     case 16:
     case 17:
     case 18:
-    dropInterval = 50;
-    break;
+      dropInterval = 50;
+      break;
     default:
-    dropInterval = 30;
+      dropInterval = 30;
   }
 }
 
 // returns the number of squares at row with y == index
 function getSquareCountInRow(index) {
   let count = game.landedSquares.reduce(
-    (num, sq) => sq.y === index ? num + 1 : num, 0
+    (num, sq) => (sq.y === index ? num + 1 : num),
+    0
   );
   return count;
 }
@@ -428,9 +445,9 @@ function getSquareCountInRow(index) {
 // that do not have y == index;
 function removeSquaresInRow(index) {
   let newLandedArray = [];
-  game.landedSquares.forEach(
-    s => {if(s.y !== index) newLandedArray.push(s)}
-  );
+  game.landedSquares.forEach(s => {
+    if (s.y !== index) newLandedArray.push(s);
+  });
   game.landedSquares = newLandedArray;
 }
 
@@ -461,19 +478,17 @@ function isSpaceOnRight(square) {
   return isSpaceFromRightBorder && isSpaceFromLanded;
 }
 
-// Returns true if square is in bounds and not in the same space 
+// Returns true if square is in bounds and not in the same space
 // as a landed square. Used to verify if a shape rotation is valid.
 function isInAvailableSpace(square) {
-  let isInBounds = 
-  square.x >= 0 && square.x < rowLength - 1 && square.y < columnLength - 1;
+  let isInBounds =
+    square.x >= 0 && square.x < rowLength - 1 && square.y < columnLength - 1;
   return isInBounds && !isOverlappingLanded(square);
 }
 
 // Returns true if square is in the same location as any landed square.
 function isOverlappingLanded(square) {
-  return game.landedSquares.some(
-    s => s.x === square.x && s.y === square.y
-  );
+  return game.landedSquares.some(s => s.x === square.x && s.y === square.y);
 }
 
 //============================== User input handler ===========================
@@ -483,20 +498,20 @@ function handleKeyDown(e) {
   }
   switch (e.keyCode) {
     case keyJ:
-    game.moveLeft();
-    break;
+      game.moveLeft();
+      break;
     case keyK:
-    game.moveDown();
-    break;
+      game.moveDown();
+      break;
     case keyL:
-    game.moveRight();
-    break;
+      game.moveRight();
+      break;
     case keyF:
-    game.rotateClockWise();
-    break;
+      game.rotateClockWise();
+      break;
     case keyD:
-    game.rotateCounterClock();
-  } 
+      game.rotateCounterClock();
+  }
 }
 //========================================= Rendering =========================
 
@@ -505,10 +520,10 @@ function handleKeyDown(e) {
 function render() {
   // game area
   // border
-  ctx.strokeStyle = 'rgb(0, 0, 0)';
+  ctx.strokeStyle = "rgb(0, 0, 0)";
   ctx.strokeRect(LEFT, TOP, width, height);
   // background
-  ctx.fillStyle = 'rgb(222, 222, 222)';
+  ctx.fillStyle = "rgb(222, 222, 222)";
   ctx.fillRect(LEFT, TOP, width, height);
   // The next shape.
   if (game.theShape) {
@@ -520,18 +535,18 @@ function render() {
 
 // Renders square on the canvas.
 function renderSquare(square) {
-  ctx.strokeStyle = 'rgb(0,0,0)';
+  ctx.strokeStyle = "rgb(0,0,0)";
   ctx.strokeRect(
-    LEFT + square.x * squareSize + 1, 
-    TOP + square.y * squareSize + 1, 
-    squareSize - 1, 
+    LEFT + square.x * squareSize + 1,
+    TOP + square.y * squareSize + 1,
+    squareSize - 1,
     squareSize - 1
   );
   ctx.fillStyle = square.color;
   ctx.fillRect(
-    LEFT + square.x * squareSize + 1, 
-    TOP + square.y * squareSize + 1, 
-    squareSize - 1, 
+    LEFT + square.x * squareSize + 1,
+    TOP + square.y * squareSize + 1,
+    squareSize - 1,
     squareSize - 1
   );
 }
