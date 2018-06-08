@@ -323,14 +323,18 @@ function getOptimalMoves(shape) {
     };
   }
 
-  let tempShape = JSON.parse(JSON.stringify(shape));
-  let currentPath = new Path();
   // Compute all possible paths and their scores
   // rotations loop
   for (let i = 0; i <= 3; i++) {
+    // tempShape is a square shape rotating doesn't change it.
+    if (i > 0 && shape.squares2D.length < 3) {
+      break;
+    }
+    let tempShape = JSON.parse(JSON.stringify(shape));
+    let currentPath = new Path();
     // Clockwise rotations
     for (let j = 0; j < i; j++) {
-      tempShape.rotate("clockwise");
+      rotateClonedShapeClockwise(tempShape);
     }
     // There is space for this # of rotations
     if (tempShape.squares.every(s => isInAvailableSpace(s))) {
@@ -345,7 +349,7 @@ function getOptimalMoves(shape) {
     let leftTempShape = JSON.parse(JSON.stringify(tempShape));
     let leftCurrentPath = JSON.parse(JSON.stringify(currentPath));
     while (leftTempShape.squares.every(s => isSpaceOnLeft(s))) {
-      leftTempShape.moveLeft();
+      leftTempShape.squares.forEach(s => s.x--);
       leftCurrentPath.moves.push("left");
       leftCurrentPath.score = getPathScore(leftTempShape);
       paths.push(JSON.parse(JSON.stringify(leftCurrentPath)));
@@ -354,7 +358,7 @@ function getOptimalMoves(shape) {
     let rightTempShape = JSON.parse(JSON.stringify(tempShape));
     let rightCurrentPath = JSON.parse(JSON.stringify(currentPath));
     while (rightTempShape.squares.every(s => isSpaceOnRight(s))) {
-      rightTempShape.moveRight();
+      rightTempShape.squares.forEach(s => s.x++);
       rightCurrentPath.moves.push("right");
       rightCurrentPath.score = getPathScore(rightTempShape);
       paths.push(JSON.parse(JSON.stringify(rightCurrentPath)));
@@ -363,54 +367,52 @@ function getOptimalMoves(shape) {
 
   // find highest scoring path and return it.
   let bestPath = paths[0];
-  paths.forEach(p => (bestPath = p.score > bestPath.score ? p : bestPath));
+  paths.forEach(p => (bestPath = p.score >= bestPath.score ? p : bestPath));
   return bestPath.moves;
+}
 
-  // there will be no rotation, one rotation, two rotations, three rotations.
-  // for each there will be left-most, right-most and all in between.
-  // each of these will receive a score.
-  // To determine score, move down until land, then count # of completed lines
-  // determine number of spaces covered, determine shape height.
-
-  // First set array of path objects with their starting position (set their moves array)
-  // Make a copy of the shape object. Add the initial to the array (with empty moves)
-  // while (canMoveLeft) {
-  //    moveLeft
-  //    add to paths array.
-  //}
-  // while (canMoveRight) {
-  //    moveRight
-  //    add to paths array.
-  //  }
-
-  // if can rotate once -> rotate and repeat previous.
-  // if can rotate twice -> rotate and repeat previous.
-  // if can rotate thrice -> rotate and repeat previous.
-
-  // after this, all initial path objects will be initiated with their starting positions
-  // (paths set).
-  // for each path
-  // Find resting place. Set score.
-
-  // iterate through all paths finding the one with highest score.
-  // return path with highest score.
-  // hardcoded path.
-  // return [
-  //   "rotateClock",
-  //   "rotateClock",
-  //   "rotateClock",
-  //   "right",
-  //   "right",
-  //   "right"
-  // ];
+// Rotates clonedShape by rotating the contents of squares2D, and
+// mutating the x and y coords of squares accordingly.
+function rotateClonedShapeClockwise(clonedShape) {
+  let squaresIndex = 0;
+  // destination container.
+  let rotated = getEmpty2DArray(clonedShape.squares2D.length);
+  for (let i = 0; i < clonedShape.squares2D.length; i++) {
+    for (let j = 0; j < clonedShape.squares2D.length; j++) {
+      // current square to move
+      let sq = clonedShape.squares2D[i][j];
+      // Mutate the squares x and y coords to rotate the entire shape
+      // Place the mutated square in corresponding place in new matrix.
+      if (sq) {
+        clonedShape.squares[squaresIndex] = sq;
+        squaresIndex++;
+        sq.x += clonedShape.squares2D.length - j - i - 1;
+        sq.y += j - i;
+      }
+      rotated[j][clonedShape.squares2D.length - i - 1] = sq;
+    }
+  }
+  clonedShape.squares2D = rotated;
+  // Returns a 2D array of length size.
+  function getEmpty2DArray(size) {
+    let outer = [];
+    for (let i = 0; i < size; i++) {
+      let inner = [];
+      outer[i] = inner;
+    }
+    return outer;
+  }
 }
 
 function getPathScore(shape) {
   let score = 0;
+  // TODO consider not cloning squares2d as not needed...
   const tempShape = JSON.parse(JSON.stringify(shape));
+  // do not have access to shape's methods or squares methods of this cloned object
+  // create functions do move shape.
   let landedSquaresClone = JSON.parse(JSON.stringify(game.landedSquares));
   while (tempShape.squares.every(s => isSpaceBelow(s))) {
-    tempShape.moveDown();
+    tempShape.squares.forEach(s => s.y++);
   }
   Array.prototype.push.apply(landedSquaresClone, tempShape.squares);
 
@@ -435,11 +437,12 @@ function getPathScore(shape) {
   }
 
   // check for height of tempShape.
-  score += columnLength;
-  let minY = columnLength;
+  let shapeMinY = columnLength;
   // find min y value
-  tempShape.squares.forEach(s => (minY = minY > s.y ? s.y : minY));
-  score -= minY;
+  tempShape.squares.forEach(
+    s => (shapeMinY = shapeMinY > s.y ? s.y : shapeMinY)
+  );
+  score += shapeMinY;
   return score;
 }
 
