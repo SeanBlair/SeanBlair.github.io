@@ -313,7 +313,7 @@ function moveShape(move) {
   }
 }
 
-function getOptimalMoves(shape, landedSquares) {
+function getOptimalMoves(shape) {
   // make sure to clone shape to determine the best path.
   let paths = [];
   function Path() {
@@ -322,6 +322,50 @@ function getOptimalMoves(shape, landedSquares) {
       score: -1
     };
   }
+
+  let tempShape = JSON.parse(JSON.stringify(shape));
+  let currentPath = new Path();
+  // Compute all possible paths and their scores
+  // rotations loop
+  for (let i = 0; i <= 3; i++) {
+    // Clockwise rotations
+    for (let j = 0; j < i; j++) {
+      tempShape.rotate("clockwise");
+    }
+    // There is space for this # of rotations
+    if (tempShape.squares.every(s => isInAvailableSpace(s))) {
+      for (let k = 0; k < i; k++) {
+        // add number of rotations to moves
+        currentPath.moves.push("rotateClock");
+      }
+    }
+    currentPath.score = getPathScore(tempShape);
+    paths.push(JSON.parse(JSON.stringify(currentPath)));
+    // get all valid paths to left
+    let leftTempShape = JSON.parse(JSON.stringify(tempShape));
+    let leftCurrentPath = JSON.parse(JSON.stringify(currentPath));
+    while (leftTempShape.squares.every(s => isSpaceOnLeft(s))) {
+      leftTempShape.moveLeft();
+      leftCurrentPath.moves.push("left");
+      leftCurrentPath.score = getPathScore(leftTempShape);
+      paths.push(JSON.parse(JSON.stringify(leftCurrentPath)));
+    }
+    // get all valid paths to right.
+    let rightTempShape = JSON.parse(JSON.stringify(tempShape));
+    let rightCurrentPath = JSON.parse(JSON.stringify(currentPath));
+    while (rightTempShape.squares.every(s => isSpaceOnRight(s))) {
+      rightTempShape.moveRight();
+      rightCurrentPath.moves.push("right");
+      rightCurrentPath.score = getPathScore(rightTempShape);
+      paths.push(JSON.parse(JSON.stringify(rightCurrentPath)));
+    }
+  }
+
+  // find highest scoring path and return it.
+  let bestPath = paths[0];
+  paths.forEach(p => (bestPath = p.score > bestPath.score ? p : bestPath));
+  return bestPath.moves;
+
   // there will be no rotation, one rotation, two rotations, three rotations.
   // for each there will be left-most, right-most and all in between.
   // each of these will receive a score.
@@ -351,14 +395,52 @@ function getOptimalMoves(shape, landedSquares) {
   // iterate through all paths finding the one with highest score.
   // return path with highest score.
   // hardcoded path.
-  return [
-    "rotateClock",
-    "rotateClock",
-    "rotateClock",
-    "right",
-    "right",
-    "right"
-  ];
+  // return [
+  //   "rotateClock",
+  //   "rotateClock",
+  //   "rotateClock",
+  //   "right",
+  //   "right",
+  //   "right"
+  // ];
+}
+
+function getPathScore(shape) {
+  let score = 0;
+  const tempShape = JSON.parse(JSON.stringify(shape));
+  let landedSquaresClone = JSON.parse(JSON.stringify(game.landedSquares));
+  while (tempShape.squares.every(s => isSpaceBelow(s))) {
+    tempShape.moveDown();
+  }
+  Array.prototype.push.apply(landedSquaresClone, tempShape.squares);
+
+  // check for num full rows.
+  for (let i = 0; i < columnLength; i++) {
+    if (getSquareCountInRow(i, landedSquaresClone) === rowLength) {
+      score += 10000;
+    }
+  }
+  // check for num spaces covered by tempShape
+  // for each square in tempShape if exists an empty square below it
+  // (No square with same x and greater y) add one to substract from score.
+  score += 2000;
+  for (let i = 0; i < tempShape.squares.length; i++) {
+    let square = tempShape.squares[i];
+    for (let j = square.y + 1; j < columnLength; j++) {
+      // empty space === no square exists with same x and greater y
+      if (landedSquaresClone.every(s => !(s.x === square.x && s.y === j))) {
+        score -= 100;
+      }
+    }
+  }
+
+  // check for height of tempShape.
+  score += columnLength;
+  let minY = columnLength;
+  // find min y value
+  tempShape.squares.forEach(s => (minY = minY > s.y ? s.y : minY));
+  score -= minY;
+  return score;
 }
 
 // Returns true if a new shape is either overlapping
@@ -428,7 +510,7 @@ function speedUp() {
 // Updates line count, level and game speed if necessary.
 function removeFullRows() {
   for (let i = columnLength - 1; i >= 0; i--) {
-    let squareCountInRow = getSquareCountInRow(i);
+    let squareCountInRow = getSquareCountInRow(i, game.landedSquares);
     // is row full?
     if (squareCountInRow === rowLength) {
       let level;
@@ -507,8 +589,8 @@ function adjustDropInterval() {
 }
 
 // returns the number of squares at row with y == index
-function getSquareCountInRow(index) {
-  let count = game.landedSquares.reduce(
+function getSquareCountInRow(index, squaresArray) {
+  let count = squaresArray.reduce(
     (num, sq) => (sq.y === index ? num + 1 : num),
     0
   );
