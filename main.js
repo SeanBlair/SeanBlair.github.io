@@ -431,7 +431,8 @@ function getPathScore(shape) {
     for (let j = square.y + 1; j < columnLength; j++) {
       // empty space === no square exists with same x and greater y
       if (landedSquaresClone.every(s => !(s.x === square.x && s.y === j))) {
-        score -= 100;
+        // score -= 100;
+        score -= 2;
       }
     }
   }
