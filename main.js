@@ -3,7 +3,7 @@ import * as tShapes from "./tetris-shapes.js";
 
 //=================================== Game constants ==========================
 
-// Pixel length of one tetromino square
+// Pixel length of one tetrimino square
 const squareSize = 15;
 // Number of squares in one row
 const rowLength = 10;
@@ -18,6 +18,13 @@ const TOP = 0;
 const width = squareSize * rowLength;
 // game height in pixels
 const height = squareSize * columnLength;
+// auto moves
+const moves = {
+  rotate: "rotate",
+  left: "left",
+  right: "right"
+};
+
 // Keyboard ids
 const keyD = 68;
 const keyF = 70;
@@ -62,7 +69,7 @@ let previousRandomId;
 
 // The game object
 let game = {
-  // the current tetromino.
+  // the current tetrimino.
   theShape: undefined,
   // the squares of landed shapes.
   landedSquares: [],
@@ -220,7 +227,7 @@ function toggleAutoPlay() {
 // if space on left, moves shape left one space and renders the game;
 function moveLeft() {
   if (game.theShape.squares.every(s => isSpaceOnLeft(s))) {
-    game.theShape.moveLeft();
+    game.theShape.squares.forEach(s => s.x--);
     render();
   }
 }
@@ -228,7 +235,7 @@ function moveLeft() {
 // if space on right, moves shape right one space and renders the game;
 function moveRight() {
   if (game.theShape.squares.every(s => isSpaceOnRight(s))) {
-    game.theShape.moveRight();
+    game.theShape.squares.forEach(s => s.x++);
     render();
   }
 }
@@ -236,28 +243,28 @@ function moveRight() {
 // if space below, moves shape down one space and renders the game;
 function moveDown() {
   if (game.theShape.squares.every(s => isSpaceBelow(s))) {
-    game.theShape.moveDown();
+    game.theShape.squares.forEach(s => s.y++);
     render();
   }
 }
 
 // If space to rotate clockwise, rotates the shape and renders the game.
 function rotateClockWise() {
-  game.theShape.rotate("clockWise");
+  tShapes.rotateShape(game.theShape, "clockWise");
   if (game.theShape.squares.every(s => isInAvailableSpace(s))) {
     render();
   } else {
-    game.theShape.rotate("counterClockWise");
+    tShapes.rotateShape(game.theShape, "counterClockWise");
   }
 }
 
 // If space to rotate counter clockwise, rotates the shape and renders the game
 function rotateCounterClockWise() {
-  game.theShape.rotate("counterClockWise");
+  tShapes.rotateShape(game.theShape, "counterClockWise");
   if (game.theShape.squares.every(s => isInAvailableSpace(s))) {
     render();
   } else {
-    game.theShape.rotate("clockWise");
+    tShapes.rotateShape(game.theShape, "clockWise");
   }
 }
 
@@ -270,7 +277,7 @@ function drop() {
     game.theShape = getNextRandomShape();
     // is exists and possible, drops the shape one space
   } else if (game.theShape.squares.every(s => isSpaceBelow(s))) {
-    game.theShape.moveDown();
+    game.theShape.squares.forEach(s => s.y++);
   } else {
     // Appends the landed shape's squares to the landedSquares array
     Array.prototype.push.apply(game.landedSquares, game.theShape.squares);
@@ -278,8 +285,6 @@ function drop() {
     // adds new shape to game
     game.theShape = getNextRandomShape();
     if (isAutoPlay) {
-      // Todo, make sure this is asynchronous, to allow not interfere
-      // with the current dropping interval.
       moveShapeToOptimalLocation();
     }
     if (isGameOver()) {
@@ -292,29 +297,34 @@ function drop() {
   render();
 }
 
+// ========================================== Auto Play Logic =================
+
+// Places the current shape in the ideal rotation and left-right position
 function moveShapeToOptimalLocation() {
-  const optimalMoves = getOptimalMoves(game.theShape, game.landedSquares);
+  const optimalMoves = getOptimalMoves();
   optimalMoves.forEach(move => {
     moveShape(move);
   });
 }
 
+// Moves shape as determined by move arg
 function moveShape(move) {
   switch (move) {
-    case "rotateClock":
+    case moves.rotate:
       game.rotateClockWise();
       break;
-    case "left":
+    case moves.left:
       game.moveLeft();
       break;
-    case "right":
+    case moves.right:
       game.moveRight();
       break;
   }
 }
 
-function getOptimalMoves(shape) {
-  // make sure to clone shape to determine the best path.
+// Returns an array of moves that will place the current shape in the optimal
+// starting position to continue current tetris game.
+function getOptimalMoves() {
   let paths = [];
   function Path() {
     return {
@@ -322,26 +332,27 @@ function getOptimalMoves(shape) {
       score: -1
     };
   }
-
   // Compute all possible paths and their scores
-  // rotations loop
+  // Loop to determine number of rotations (0 - 3)
   for (let i = 0; i <= 3; i++) {
-    // tempShape is a square shape rotating doesn't change it.
-    if (i > 0 && shape.squares2D.length < 3) {
+    if (i > 0 && game.theShape.squares2D.length < 3) {
+      // theShape is a square shape and rotating doesn't change it.
       break;
     }
-    let tempShape = JSON.parse(JSON.stringify(shape));
+    let tempShape = JSON.parse(JSON.stringify(game.theShape));
     let currentPath = new Path();
-    // Clockwise rotations
     for (let j = 0; j < i; j++) {
-      rotateClonedShapeClockwise(tempShape);
+      tShapes.rotateShape(tempShape);
     }
-    // There is space for this # of rotations
     if (tempShape.squares.every(s => isInAvailableSpace(s))) {
-      for (let k = 0; k < i; k++) {
-        // add number of rotations to moves
-        currentPath.moves.push("rotateClock");
+      // There is space for i number of rotations
+      for (let j = 0; j < i; j++) {
+        // add number of rotations moves to moves array
+        currentPath.moves.push(moves.rotate);
       }
+    } else {
+      // invalid rotation
+      break;
     }
     currentPath.score = getPathScore(tempShape);
     paths.push(JSON.parse(JSON.stringify(currentPath)));
@@ -350,7 +361,7 @@ function getOptimalMoves(shape) {
     let leftCurrentPath = JSON.parse(JSON.stringify(currentPath));
     while (leftTempShape.squares.every(s => isSpaceOnLeft(s))) {
       leftTempShape.squares.forEach(s => s.x--);
-      leftCurrentPath.moves.push("left");
+      leftCurrentPath.moves.push(moves.left);
       leftCurrentPath.score = getPathScore(leftTempShape);
       paths.push(JSON.parse(JSON.stringify(leftCurrentPath)));
     }
@@ -359,90 +370,48 @@ function getOptimalMoves(shape) {
     let rightCurrentPath = JSON.parse(JSON.stringify(currentPath));
     while (rightTempShape.squares.every(s => isSpaceOnRight(s))) {
       rightTempShape.squares.forEach(s => s.x++);
-      rightCurrentPath.moves.push("right");
+      rightCurrentPath.moves.push(moves.right);
       rightCurrentPath.score = getPathScore(rightTempShape);
       paths.push(JSON.parse(JSON.stringify(rightCurrentPath)));
     }
   }
-
   // find highest scoring path and return it.
-  let bestPath = paths[0];
+  let bestPath = new Path();
   paths.forEach(p => (bestPath = p.score >= bestPath.score ? p : bestPath));
   return bestPath.moves;
 }
 
-// Rotates clonedShape by rotating the contents of squares2D, and
-// mutating the x and y coords of squares accordingly.
-function rotateClonedShapeClockwise(clonedShape) {
-  let squaresIndex = 0;
-  // destination container.
-  let rotated = getEmpty2DArray(clonedShape.squares2D.length);
-  for (let i = 0; i < clonedShape.squares2D.length; i++) {
-    for (let j = 0; j < clonedShape.squares2D.length; j++) {
-      // current square to move
-      let sq = clonedShape.squares2D[i][j];
-      // Mutate the squares x and y coords to rotate the entire shape
-      // Place the mutated square in corresponding place in new matrix.
-      if (sq) {
-        clonedShape.squares[squaresIndex] = sq;
-        squaresIndex++;
-        sq.x += clonedShape.squares2D.length - j - i - 1;
-        sq.y += j - i;
-      }
-      rotated[j][clonedShape.squares2D.length - i - 1] = sq;
-    }
-  }
-  clonedShape.squares2D = rotated;
-  // Returns a 2D array of length size.
-  function getEmpty2DArray(size) {
-    let outer = [];
-    for (let i = 0; i < size; i++) {
-      let inner = [];
-      outer[i] = inner;
-    }
-    return outer;
-  }
-}
-
+// Return the score of this path, the more optimal, the higher.
 function getPathScore(shape) {
   let score = 0;
-  // TODO consider not cloning squares2d as not needed...
-  const tempShape = JSON.parse(JSON.stringify(shape));
-  // do not have access to shape's methods or squares methods of this cloned object
-  // create functions do move shape.
+  const squares = JSON.parse(JSON.stringify(shape.squares));
   let landedSquaresClone = JSON.parse(JSON.stringify(game.landedSquares));
-  while (tempShape.squares.every(s => isSpaceBelow(s))) {
-    tempShape.squares.forEach(s => s.y++);
+  // move squares as far down as possible
+  while (squares.every(s => isSpaceBelow(s))) {
+    squares.forEach(s => s.y++);
   }
-  Array.prototype.push.apply(landedSquaresClone, tempShape.squares);
-
-  // check for num full rows.
+  Array.prototype.push.apply(landedSquaresClone, squares);
+  // For any full rows add 10000 to score as this is the game's priority.
   for (let i = 0; i < columnLength; i++) {
     if (getSquareCountInRow(i, landedSquaresClone) === rowLength) {
       score += 10000;
     }
   }
-  // check for num spaces covered by tempShape
-  // for each square in tempShape if exists an empty square below it
-  // (No square with same x and greater y) add one to substract from score.
   score += 2000;
-  for (let i = 0; i < tempShape.squares.length; i++) {
-    let square = tempShape.squares[i];
-    for (let j = square.y + 1; j < columnLength; j++) {
+  // For every empty space covered by squares, substract 2 from score.
+  for (let i = 0; i < squares.length; i++) {
+    for (let j = squares[i].y + 1; j < columnLength; j++) {
       // empty space === no square exists with same x and greater y
-      if (landedSquaresClone.every(s => !(s.x === square.x && s.y === j))) {
-        // score -= 100;
+      if (landedSquaresClone.every(s => !(s.x === squares[i].x && s.y === j))) {
         score -= 2;
       }
     }
   }
-
-  // check for height of tempShape.
+  // The lower the shape (higher y value) the better.
   let shapeMinY = columnLength;
-  // find min y value
-  tempShape.squares.forEach(
-    s => (shapeMinY = shapeMinY > s.y ? s.y : shapeMinY)
-  );
+  // find min y value in shape
+  squares.forEach(s => (shapeMinY = shapeMinY > s.y ? s.y : shapeMinY));
+  // add this to score, the higher y value, the higher score
   score += shapeMinY;
   return score;
 }
