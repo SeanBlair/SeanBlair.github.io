@@ -1,6 +1,7 @@
 # Tetris clone
 
 A classic tetris game created with ES6 JavaScript.
+[Check it out](https://seanblair.github.io/tetris-js/)
 
 ## Requirements
 
